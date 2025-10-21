@@ -17,7 +17,7 @@ AI-powered quiz generator web app that dynamically creates multiple-choice quizz
 ## Demo
 
 Provide a link to your hosted app or screenshots here:  
-###[Your Demo Link] : (https://ai-quiz-generator-chsd.vercel.app/)
+###[Your Demo Link] : (https://ai-quiz-generator-lovat.vercel.app/)
 
 ## Tech Stack
 
