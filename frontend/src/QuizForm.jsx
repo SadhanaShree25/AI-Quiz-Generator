@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { ClipLoader } from "react-spinners";
+
 
 export default function QuizForm({ onQuizGenerated }) {
   const [topic, setTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(""); // user input
   const [loading, setLoading] = useState(false);
+  const [difficulty, setDifficulty] = useState("");
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +25,7 @@ export default function QuizForm({ onQuizGenerated }) {
         {
           topic,
           numQuestions: count,
+          difficulty,
         }
       );
 
@@ -65,6 +70,7 @@ export default function QuizForm({ onQuizGenerated }) {
 
   return (
     <form onSubmit={handleSubmit} className="quiz-form">
+      <h1>AI QUIZ <br></br> GENERATOR</h1>
       <div className="input-group">
         <input
           type="text"
@@ -75,6 +81,21 @@ export default function QuizForm({ onQuizGenerated }) {
           className="input-field"
         />
       </div>
+      <div className="input-group">
+  <select
+    value={difficulty}
+    onChange={(e) => setDifficulty(e.target.value)}
+    className="input-field"
+  >
+     <option value="" disabled>
+      Select difficulty level
+    </option>
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
+  </select>
+</div>
+
 
       <div className="input-group">
         <input
@@ -89,7 +110,11 @@ export default function QuizForm({ onQuizGenerated }) {
       </div>
 
       <button type="submit" className="generate-btn" disabled={loading}>
-        {loading ? "Generating Quiz..." : "Generate Quiz"}
+       {loading ? (
+    <ClipLoader color="#ffffff" size={25} />   // Spinner
+  ) : (
+    "Generate Quiz"
+  )}
       </button>
     </form>
   );
