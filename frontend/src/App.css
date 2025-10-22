@@ -253,9 +253,9 @@ h1 {
 
 .home-icon {
   position: fixed;      /* stays in place */
-  top: 20px;            /* distance from top */
-  right: 60px;          /* distance from right */
-  font-size: 40px;      /* size of icon */
+  top: 15px;            /* distance from top */
+  right: 35px;          /* distance from right */
+  font-size: 30px;      /* size of icon */
   color: #ff8c00;       /* matches your theme */
   cursor: pointer;
   z-index: 1000;        /* stays above other elements */

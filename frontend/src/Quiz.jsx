@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaHome } from "react-icons/fa";
-import "./Quiz.css";
+import "./App.css";
 
 export default function Quiz({ quiz, onBack }) {
   const [answers, setAnswers] = useState({});
