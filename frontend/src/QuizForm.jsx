@@ -21,7 +21,7 @@ export default function QuizForm({ onQuizGenerated }) {
       const count = Number(numQuestions) > 0 ? Number(numQuestions) : 5;
 
       const res = await axios.post(
-        "https://ai-quiz-generator-rutu.vercel.app/api/generate-quiz",
+        "https://ai-quiz-generator-evdu.vercel.app/api/generate-quiz",
         {
           topic,
           numQuestions: count,
