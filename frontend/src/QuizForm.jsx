@@ -8,19 +8,23 @@ export default function QuizForm({ onQuizGenerated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!topic.trim()) return; // Prevent empty topic
+    if (!topic.trim()) return;
+
     setLoading(true);
 
     try {
-      // Convert input to number and default to 5 if empty or invalid
+      // Convert input to number and default to 5 if empty/invalid
       const count = Number(numQuestions) > 0 ? Number(numQuestions) : 5;
 
-      const res = await axios.post("http://localhost:5000/api/generate-quiz", {
-        topic,
-        numQuestions: count,
-      });
+      const res = await axios.post(
+        "https://ai-quiz-generator-rutu.vercel.app/api/generate-quiz",
+        {
+          topic,
+          numQuestions: count,
+        }
+      );
 
-      // Convert raw AI response to structured quiz
+      // Convert AI response to structured quiz
       const quiz = parseQuizText(res.data.quizText);
       onQuizGenerated(quiz);
     } catch (err) {
@@ -75,7 +79,7 @@ export default function QuizForm({ onQuizGenerated }) {
       <div className="input-group">
         <input
           type="number"
-          placeholder="Number of questions"
+          placeholder="Number of questions (default 5)"
           value={numQuestions}
           onChange={(e) => setNumQuestions(e.target.value)}
           min={1}
