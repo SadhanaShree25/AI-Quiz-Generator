@@ -250,3 +250,19 @@ h1 {
   transform: scale(1.2);
   color: #ffa500;
 }
+
+.home-icon {
+  position: fixed;      /* stays in place */
+  top: 20px;            /* distance from top */
+  right: 60px;          /* distance from right */
+  font-size: 40px;      /* size of icon */
+  color: #ff8c00;       /* matches your theme */
+  cursor: pointer;
+  z-index: 1000;        /* stays above other elements */
+  transition: transform 0.2s, color 0.2s;
+}
+
+.home-icon:hover {
+  transform: scale(1.2);
+  color: #ffa500;
+}

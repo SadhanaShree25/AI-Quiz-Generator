@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaHome } from "react-icons/fa";
+import "./Quiz.css";
 
 export default function Quiz({ quiz, onBack }) {
   const [answers, setAnswers] = useState({});
@@ -13,20 +14,26 @@ export default function Quiz({ quiz, onBack }) {
     setSubmitted(true);
 
     // Save score to localStorage
-    const score = quiz.reduce((acc, q, i) => (answers[i] === q.answerText ? acc + 1 : acc), 0);
+    const score = quiz.reduce(
+      (acc, q, i) => (answers[i] === q.answerText ? acc + 1 : acc),
+      0
+    );
     const scoreEntry = { date: new Date().toLocaleString(), score, total: quiz.length };
     const prevScores = JSON.parse(localStorage.getItem("quizScores")) || [];
     localStorage.setItem("quizScores", JSON.stringify([...prevScores, scoreEntry]));
   };
 
-  const score = quiz.reduce((acc, q, i) => (answers[i] === q.answerText ? acc + 1 : acc), 0);
+  const score = quiz.reduce(
+    (acc, q, i) => (answers[i] === q.answerText ? acc + 1 : acc),
+    0
+  );
 
   return (
     <div className="quiz-container">
-      {/* Fixed Home Icon */}
+      {/* Home Icon */}
       <FaHome
         className="home-icon"
-        onClick={onBack}
+        onClick={onBack} // clicking this redirects to Home
         title="Go Home"
       />
 
@@ -51,10 +58,12 @@ export default function Quiz({ quiz, onBack }) {
               ))}
             </div>
           ))}
-          <button onClick={handleSubmit}>Submit</button>
+          <button className="submit-btn" onClick={handleSubmit}>
+            Submit
+          </button>
         </>
       ) : (
-        <div>
+        <div className="results">
           <h2>Your Score: {score}/{quiz.length}</h2>
           {quiz.map((q, i) => (
             <div key={i} className="question-result">
@@ -72,7 +81,9 @@ export default function Quiz({ quiz, onBack }) {
               </p>
             </div>
           ))}
-          <button onClick={onBack}>Back</button>
+          <button className="back-btn" onClick={onBack}>
+            Back to Home
+          </button>
         </div>
       )}
     </div>
