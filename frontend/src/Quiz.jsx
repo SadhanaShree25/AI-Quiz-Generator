@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FaHome } from "react-icons/fa";
 
 export default function Quiz({ quiz, onBack }) {
   const [answers, setAnswers] = useState({});
@@ -8,14 +9,27 @@ export default function Quiz({ quiz, onBack }) {
     setAnswers({ ...answers, [qIndex]: option });
   };
 
-  const handleSubmit = () => setSubmitted(true);
+  const handleSubmit = () => {
+    setSubmitted(true);
 
-  const score = quiz.reduce((acc, q, i) => {
-    return answers[i] === q.answerText ? acc + 1 : acc;
-  }, 0);
+    // Save score to localStorage
+    const score = quiz.reduce((acc, q, i) => (answers[i] === q.answerText ? acc + 1 : acc), 0);
+    const scoreEntry = { date: new Date().toLocaleString(), score, total: quiz.length };
+    const prevScores = JSON.parse(localStorage.getItem("quizScores")) || [];
+    localStorage.setItem("quizScores", JSON.stringify([...prevScores, scoreEntry]));
+  };
+
+  const score = quiz.reduce((acc, q, i) => (answers[i] === q.answerText ? acc + 1 : acc), 0);
 
   return (
     <div className="quiz-container">
+      {/* Fixed Home Icon */}
+      <FaHome
+        className="home-icon"
+        onClick={onBack}
+        title="Go Home"
+      />
+
       {!submitted ? (
         <>
           {quiz.map((q, i) => (
