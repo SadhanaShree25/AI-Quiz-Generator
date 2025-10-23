@@ -6,6 +6,10 @@ export default function Quiz({ quiz, onBack }) {
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
+  // 🔹 Normalize text for accurate comparison
+  const normalize = (text = "") =>
+    text.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+
   const handleSelect = (qIndex, option) => {
     setAnswers({ ...answers, [qIndex]: option });
   };
@@ -13,27 +17,36 @@ export default function Quiz({ quiz, onBack }) {
   const handleSubmit = () => {
     setSubmitted(true);
 
-    // Save score to localStorage
+    // 🔹 Calculate score using normalized answers
     const score = quiz.reduce(
-      (acc, q, i) => (answers[i] === q.answerText ? acc + 1 : acc),
+      (acc, q, i) =>
+        normalize(answers[i]) === normalize(q.answerText) ? acc + 1 : acc,
       0
     );
-    const scoreEntry = { date: new Date().toLocaleString(), score, total: quiz.length };
+
+    // 🔹 Save score history in localStorage
+    const scoreEntry = {
+      date: new Date().toLocaleString(),
+      score,
+      total: quiz.length,
+    };
     const prevScores = JSON.parse(localStorage.getItem("quizScores")) || [];
     localStorage.setItem("quizScores", JSON.stringify([...prevScores, scoreEntry]));
   };
 
+  // 🔹 Real-time score calculation (after submit)
   const score = quiz.reduce(
-    (acc, q, i) => (answers[i] === q.answerText ? acc + 1 : acc),
+    (acc, q, i) =>
+      normalize(answers[i]) === normalize(q.answerText) ? acc + 1 : acc,
     0
   );
 
   return (
     <div className="quiz-container">
-      {/* Home Icon */}
+      {/* 🏠 Home Icon */}
       <FaHome
         className="home-icon"
-        onClick={onBack} // clicking this redirects to Home
+        onClick={onBack}
         title="Go Home"
       />
 
@@ -58,13 +71,16 @@ export default function Quiz({ quiz, onBack }) {
               ))}
             </div>
           ))}
+
           <button className="submit-btn" onClick={handleSubmit}>
             Submit
           </button>
         </>
       ) : (
         <div className="results">
-          <h2>Your Score: {score}/{quiz.length}</h2>
+          <h2>
+            Your Score: {score}/{quiz.length}
+          </h2>
           {quiz.map((q, i) => (
             <div key={i} className="question-result">
               <h3>
@@ -72,7 +88,13 @@ export default function Quiz({ quiz, onBack }) {
               </h3>
               <p>
                 Your answer:{" "}
-                <span className={answers[i] === q.answerText ? "correct" : "wrong"}>
+                <span
+                  className={
+                    normalize(answers[i]) === normalize(q.answerText)
+                      ? "correct"
+                      : "wrong"
+                  }
+                >
                   {answers[i] || "No answer"}
                 </span>
               </p>
