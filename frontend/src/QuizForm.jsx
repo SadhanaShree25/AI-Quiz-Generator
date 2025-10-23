@@ -47,7 +47,7 @@ export default function QuizForm({ onQuizGenerated }) {
         const answerMatch = ansLine.match(/Correct answer:\s*(.*)/i);
         const rawAnswer = answerMatch ? answerMatch[1].trim() : "";
         const answerText =
-          options.find((opt) => normalize(opt) === normalize(rawAnswer)) || "";
+          options.find((opt) => normalize(opt) === normalize(rawAnswer)) || rawAnswer;
         quiz.push({ question, options, answerText });
         i += 6;
       } else {
