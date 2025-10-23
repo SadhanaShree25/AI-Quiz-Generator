@@ -8,7 +8,7 @@ const openai = new OpenAI({
 
 router.post("/generate-quiz", async (req, res) => {
   try {
-    const { topic, numQuestions } = req.body;
+    const { topic, numQuestions, difficulty } = req.body;
 
     if (!topic) return res.status(400).json({ error: "Topic is required" });
     if (!numQuestions || numQuestions < 1) return res.status(400).json({ error: "Number of questions is required" });
@@ -17,10 +17,9 @@ router.post("/generate-quiz", async (req, res) => {
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: "You are a helpful quiz generator." },
-        { 
-          role: "user", 
-          content: `Generate exactly ${numQuestions} quiz questions on "${topic}" with 4 options each (A-D). 
-Format each question like this:
+        {
+          role: "user",
+          content: `Generate exactly ${numQuestions} quiz questions on "${topic}" with 4 options each (A-D). Format each question like this:
 
 1. Question text
 A) option
