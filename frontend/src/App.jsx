@@ -1,49 +1,44 @@
-import React, { useState } from "react";
-import QuizForm from "./QuizForm";
-import Quiz from "./Quiz";
-import Home from "./Home";
-import "./App.css";
+import { Routes, Route, Navigate } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup"; // Changed from Register to Signup to match new UI
+import ForgotPassword from "./pages/ForgotPassword";
+import AdvancedDashboard from "./pages/Dashboard";
+import QuizPage from "./pages/QuizPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
-  const [quiz, setQuiz] = useState([]);
-  const [view, setView] = useState("form"); // "form" or "quiz"
-  const [showHome, setShowHome] = useState(true);
-
-  // Called when quiz is generated
-  const handleQuizGenerated = (generatedQuiz) => {
-    if (Array.isArray(generatedQuiz)) {
-      setQuiz(generatedQuiz);
-      setView("quiz");
-      setShowHome(false); // hide home when quiz starts
-    } else {
-      console.error("Quiz data is not an array:", generatedQuiz);
-      alert("Failed to generate a proper quiz.");
-    }
-  };
-
-  // Called when Home icon is clicked
-  const handleBackToHome = () => {
-    setQuiz([]);       // clear quiz
-    setView("form");   // reset form view
-    setShowHome(true); // show home
-  };
-
-  // Called when Start Quiz button on Home is clicked
-  const handleStart = () => {
-    setShowHome(false); // hide home
-    setView("form");    // show quiz form
-  };
-
   return (
-    <div className="app">
-      {showHome ? (
-        <Home onStart={handleStart} />
-      ) : view === "form" ? (
-        <QuizForm onQuizGenerated={handleQuizGenerated} />
-      ) : (
-        <Quiz quiz={quiz} onBack={handleBackToHome} />
-      )}
-    </div>
+    <Routes>
+      {/* PUBLIC ROUTES */}
+      {/* Now the root of your app is the beautiful Landing Page */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+
+      {/* PROTECTED ROUTES */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <AdvancedDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/quiz"
+        element={
+          <ProtectedRoute>
+            <QuizPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* CATCH-ALL: Redirect unknown URLs to Landing Page */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
 
