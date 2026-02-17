@@ -20,7 +20,7 @@ const app = express();
 connectDB();
 
 // 3. MIDDLEWARE
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: "ai-quiz-generator-plum.vercel.app" }));
 app.use(express.json());
 
 // 4. ROUTES
