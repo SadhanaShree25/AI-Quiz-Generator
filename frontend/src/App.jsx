@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup"; // Changed from Register to Signup to match new UI
-import ForgotPassword from "./pages/ForgotPassword";
 import AdvancedDashboard from "./pages/Dashboard";
 import QuizPage from "./pages/QuizPage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -15,7 +14,6 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* PROTECTED ROUTES */}
       <Route

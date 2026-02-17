@@ -1,25 +1,23 @@
 import axios from "axios";
 
+const apiBase =
+  import.meta.env.VITE_API_URL?.trim?.() || "http://localhost:5000";
 const api = axios.create({
-  // If you deploy to Vercel later, change this to your Vercel URL
-  baseURL: "http://localhost:5000/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: apiBase.endsWith("/api") ? apiBase : `${apiBase.replace(/\/$/, "")}/api`,
 });
 
-// Interceptor to attach JWT token to every request automatically
+// ✅ Automatically attach token to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default api;

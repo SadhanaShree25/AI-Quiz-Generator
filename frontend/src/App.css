@@ -1,15 +1,12 @@
-/* Global styles */
-body, .app {
+/* Global styles - Theme aware */
+body,
+.app {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 10px;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* App container */

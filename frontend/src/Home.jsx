@@ -10,25 +10,28 @@ export default function Home({ onStart }) {
   }, []);
 
   return (
-    <div className="home-container">
-      <h1>Welcome to AI Quiz Generator</h1>
-      <p>Challenge yourself and see your scores!</p>
-      <button className="start-btn" onClick={onStart}>Start Quiz</button>
+    <div className="p-10 text-center">
+      <h1 className="text-4xl font-black text-zinc-100 mb-4">AI Quiz Generator</h1>
+      <p className="text-zinc-500 mb-8">Generate quizzes on any topic with AI</p>
+      <button
+        onClick={onStart}
+        className="px-10 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-500 transition-colors"
+      >
+        Generate Quiz
+      </button>
 
-      <div className="leaderboard">
-        <h3>Top Scores</h3>
-        {topScores.length === 0 ? (
-          <p>No scores yet. Play a quiz!</p>
-        ) : (
-          <ol>
+      {topScores.length > 0 && (
+        <div className="mt-12 bg-[#18181f] rounded-2xl border border-zinc-800 p-6 max-w-md mx-auto text-left">
+          <h3 className="text-lg font-bold text-zinc-100 mb-4">Recent Scores</h3>
+          <ol className="space-y-2">
             {topScores.map((entry, index) => (
-              <li key={index}>
+              <li key={index} className="text-zinc-400">
                 {entry.score}/{entry.total} - {entry.date}
               </li>
             ))}
           </ol>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

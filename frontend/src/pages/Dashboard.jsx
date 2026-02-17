@@ -1,27 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-// Component Imports
 import SettingsSection from "../components/SettingsSection";
-import LeaderboardSection from "../components/LeaderboardSection"; 
 import MyQuizzesSection from "../components/MyQuizzesSection";
 import QuizForm from "../pages/QuizForm";
 import QuizPlayer from "../components/QuizPlayer";
+import { useTheme } from "../context/ThemeContext";
 
 const AdvancedDashboard = () => {
   const navigate = useNavigate();
-  const [currentTab, setCurrentTab] = useState('dashboard'); 
+  const { theme, toggleTheme } = useTheme();
+  const [currentTab, setCurrentTab] = useState("dashboard");
   const [activeQuiz, setActiveQuiz] = useState(null);
-  const [data, setData] = useState({ 
-    user: null, 
-    stats: { totalQuizzes: 0, accuracy: 0, avgScore: 0, streak: 0 }, 
-    history: [] 
+
+  const [data, setData] = useState({
+    user: null,
+    stats: { totalQuizzes: 0, totalAttempts: 0, lastTopic: "None" },
+    history: [],
   });
+
   const [loading, setLoading] = useState(true);
 
-  // Memoized fetch function to reuse after quiz completion or deletion
   const fetchDashboardData = useCallback(async () => {
     try {
       const [userRes, statsRes, historyRes] = await Promise.all([
@@ -29,7 +28,12 @@ const AdvancedDashboard = () => {
         api.get("/quiz/stats"),
         api.get("/quiz/history"),
       ]);
-      setData({ user: userRes.data, stats: statsRes.data, history: historyRes.data });
+
+      setData({
+        user: userRes.data,
+        stats: statsRes.data,
+        history: historyRes.data,
+      });
     } catch (err) {
       console.error("Error fetching data:", err);
       if (err.response?.status === 401) navigate("/login");
@@ -47,86 +51,161 @@ const AdvancedDashboard = () => {
     navigate("/login");
   };
 
-  if (loading) return (
-    <div className="flex h-screen items-center justify-center bg-slate-50">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <div className="animate-pulse text-indigo-600 font-bold text-xl uppercase tracking-widest">
-          AI Quiz Master Loading...
+  if (loading) {
+    return (
+      <div className={`flex h-screen items-center justify-center ${theme === 'dark' ? 'bg-[#0f0f14]' : 'bg-gray-50'}`}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-indigo-400 font-bold uppercase tracking-widest">
+            Loading AI Workspace...
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC]">
+    <div className={`flex min-h-screen ${theme === 'dark' ? 'bg-[#0f0f14]' : 'bg-gray-50'}`}>
       {/* SIDEBAR */}
-      <aside className="w-72 bg-[#1E1B4B] text-white flex flex-col shadow-2xl fixed h-full">
-        <div className="p-8 text-3xl font-black italic tracking-tighter text-indigo-400">QUIZ.AI</div>
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-          <SidebarItem active={currentTab === 'dashboard'} label="Dashboard" icon="🏠" onClick={() => setCurrentTab('dashboard')} />
-          <SidebarItem active={currentTab === 'quizzes'} label="My Quizzes" icon="🚀" onClick={() => setCurrentTab('quizzes')} />
-          <SidebarItem active={currentTab === 'leaderboard'} label="Leaderboard" icon="🥇" onClick={() => setCurrentTab('leaderboard')} />
-          <div className="border-t border-slate-700 my-4 pt-4">
-              <SidebarItem active={currentTab === 'settings'} label="Settings" icon="⚙️" onClick={() => setCurrentTab('settings')} />
-          </div>
+      <aside className={`w-72 ${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} border-r flex flex-col fixed h-full`}>
+        <div className={`p-8 text-3xl font-black italic tracking-tighter ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>
+          QUIZ.AI
+        </div>
+
+        <nav className="flex-1 px-4 space-y-2">
+          <SidebarItem
+            active={currentTab === "dashboard"}
+            label="Dashboard"
+            icon="🏠"
+            onClick={() => setCurrentTab("dashboard")}
+            theme={theme}
+          />
+          <SidebarItem
+            active={currentTab === "quizzes"}
+            label="My Quizzes"
+            icon="📝"
+            onClick={() => setCurrentTab("quizzes")}
+            theme={theme}
+          />
+          <SidebarItem
+            active={currentTab === "profile"}
+            label="Profile"
+            icon="👤"
+            onClick={() => setCurrentTab("profile")}
+            theme={theme}
+          />
+          <SidebarItem
+            active={currentTab === "settings"}
+            label="Settings"
+            icon="⚙️"
+            onClick={() => setCurrentTab("settings")}
+            theme={theme}
+          />
         </nav>
+
         <div className="p-6">
-          <button 
+          <button
             onClick={handleLogout}
-            className="w-full bg-red-500/10 text-red-500 py-3 rounded-2xl font-bold hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+            className={`w-full py-3 rounded-2xl font-bold transition-all ${
+              theme === 'dark'
+                ? 'bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white'
+                : 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white'
+            }`}
           >
-            Logout <span>🚪</span>
+            Logout 🚪
           </button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA (Offset by Sidebar width) */}
+      {/* MAIN */}
       <main className="flex-1 ml-72">
-        <header className="bg-white h-20 px-10 flex justify-between items-center sticky top-0 z-10 border-b border-slate-100">
-          <h2 className="text-xl font-bold text-slate-800 capitalize tracking-tight">{currentTab}</h2>
-          <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setCurrentTab('profile')}>
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold group-hover:text-indigo-600 transition">{data.user?.name}</p>
-              <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase bg-slate-50 px-2 py-0.5 rounded">Elite Learner</p>
-            </div>
-            <div className="h-12 w-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg group-hover:rotate-3 transition-transform">
-              {data.user?.name?.charAt(0).toUpperCase()}
+        <header className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} h-20 px-10 flex justify-between items-center border-b`}>
+          <h2 className={`text-xl font-bold capitalize ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
+            {currentTab}
+          </h2>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              className={`px-4 py-2 rounded-lg text-xs font-bold border transition ${
+                theme === 'dark' 
+                  ? 'border-zinc-700 text-zinc-300 hover:border-indigo-500 hover:text-indigo-400 bg-zinc-800/50' 
+                  : 'border-gray-300 text-gray-700 hover:border-indigo-500 hover:text-indigo-600 bg-gray-100'
+              }`}
+            >
+              {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
+            </button>
+
+            <div
+              className="flex items-center gap-4 cursor-pointer group"
+              onClick={() => setCurrentTab("profile")}
+            >
+              <div className="text-right hidden sm:block">
+                <p className={`text-sm font-bold ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'} group-hover:text-indigo-500 transition`}>
+                  {data.user?.name}
+                </p>
+                <p className={`text-[10px] uppercase font-black ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
+                  {data.stats?.totalQuizzes || 0} Quizzes
+                </p>
+              </div>
+
+              <div className="h-12 w-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold group-hover:scale-105 transition-transform">
+                {data.user?.name?.charAt(0).toUpperCase()}
+              </div>
             </div>
           </div>
         </header>
 
         <div className="p-10 max-w-7xl mx-auto">
-          {currentTab === 'dashboard' && (
-            <OverviewSection stats={data.stats} history={data.history} onStart={() => setCurrentTab('create')} />
+          {currentTab === "dashboard" && (
+            <OverviewSection
+              stats={data.stats}
+              history={data.history}
+              onStart={() => setCurrentTab("create")}
+              theme={theme}
+            />
           )}
 
-          {currentTab === 'profile' && <ProfileSection user={data.user} stats={data.stats} history={data.history} />}
-          {currentTab === 'leaderboard' && <LeaderboardSection />}
-          
-          {currentTab === 'quizzes' && (
-            <MyQuizzesSection history={data.history} onUpdate={fetchDashboardData} />
+          {currentTab === "quizzes" && (
+            <MyQuizzesSection
+              history={data.history}
+              onUpdate={fetchDashboardData}
+            />
           )}
 
-          {currentTab === 'settings' && (
-            <SettingsSection user={data.user} onUpdate={fetchDashboardData} />
+          {currentTab === "profile" && (
+            <ProfileSection
+              user={data.user}
+              stats={data.stats}
+              history={data.history}
+              theme={theme}
+            />
           )}
 
-          {currentTab === 'create' && (
-            <div className="animate-in fade-in zoom-in-95 duration-500">
+          {currentTab === "settings" && (
+            <SettingsSection
+              user={data.user}
+              onUpdate={fetchDashboardData}
+            />
+          )}
+
+          {currentTab === "create" && (
+            <>
               {!activeQuiz ? (
                 <QuizForm onQuizGenerated={(quiz) => setActiveQuiz(quiz)} />
               ) : (
-                <QuizPlayer 
-                  quizData={activeQuiz} 
-                  onComplete={() => {
+                <QuizPlayer
+                  questions={activeQuiz.questions}
+                  topic={activeQuiz.topic}
+                  difficulty={activeQuiz.difficulty}
+                  onBack={() => {
                     setActiveQuiz(null);
-                    setCurrentTab('dashboard');
-                    fetchDashboardData(); 
-                  }} 
+                    setCurrentTab("dashboard");
+                    fetchDashboardData();
+                  }}
                 />
               )}
-            </div>
+            </>
           )}
         </div>
       </main>
@@ -134,108 +213,213 @@ const AdvancedDashboard = () => {
   );
 };
 
-// --- SUB-COMPONENTS ---
-
-const OverviewSection = ({ stats, history, onStart }) => (
-  <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard label="Total Quizzes" value={stats.totalQuizzes || 0} icon="📝" />
-      <StatCard label="Avg Score" value={(stats.avgScore || 0) + "%"} icon="📊" />
-      <StatCard label="Accuracy" value={(stats.accuracy || 0) + "%"} icon="🎯" />
-      <StatCard label="Streak" value={(stats.streak || 0) + " Days 🔥"} icon="⚡" />
+const OverviewSection = ({ stats, history, onStart, theme = 'dark' }) => (
+  <div className="space-y-8">
+    {/* Welcome Heading */}
+    <div className="space-y-3">
+      <h1 className={`text-5xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight`}>
+        Welcome to AI Quiz Generator
+      </h1>
+      <p className={`text-lg max-w-2xl leading-relaxed ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
+        Create intelligent, personalized quizzes on any topic using advanced AI. 
+        Track your progress, review your answers, and master new subjects effortlessly.
+      </p>
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="bg-indigo-600 p-10 rounded-[2.5rem] text-white flex flex-col justify-between shadow-2xl min-h-[320px]">
-        <div>
-            <h3 className="text-3xl font-black mb-2 italic tracking-tight">Ready for a challenge?</h3>
-            <p className="text-indigo-100 text-sm">AI Recommendation: <span className="underline decoration-white/40 font-bold">{stats.recommendedTopic || "General Knowledge"}</span></p>
-        </div>
-        <button onClick={onStart} className="mt-8 bg-white text-indigo-600 py-5 rounded-2xl font-black text-xl hover:shadow-xl transition-all active:scale-95">
-          GENERATE QUIZ 🚀
-        </button>
+    {/* Stats Cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <StatCard
+        label="Total Quizzes"
+        value={stats.totalQuizzes || 0}
+        icon="📝"
+        description="Quizzes completed"
+        theme={theme}
+      />
+      <StatCard
+        label="Total Attempts"
+        value={stats.totalAttempts || 0}
+        icon="🎯"
+        description="Times practiced"
+        theme={theme}
+      />
+      <StatCard
+        label="Last Topic"
+        value={stats.lastTopic || "None"}
+        icon="🤖"
+        description="Recent subject"
+        theme={theme}
+      />
+    </div>
+
+    {/* Generate Section */}
+    <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-10 rounded-2xl text-white flex flex-col justify-between min-h-[280px] shadow-xl border border-indigo-500/20">
+      <div>
+        <h3 className="text-3xl font-black mb-3">
+          Start Generating Smart Quizzes
+        </h3>
+        <p className="text-indigo-100 text-base leading-relaxed">
+          Generate topic-based quizzes powered by AI in seconds. Choose any subject, 
+          set difficulty level, and get instant questions with explanations.
+        </p>
       </div>
 
-      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-        <h3 className="text-lg font-bold mb-6 text-slate-800">Recent Activity</h3>
-        <div className="space-y-4">
-          {history.length > 0 ? history.slice(0, 4).map((q, i) => (
-            <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors">
+      <button
+        onClick={onStart}
+        className="mt-8 bg-white text-indigo-600 py-4 rounded-xl font-bold text-lg hover:scale-[1.02] transition shadow-lg hover:shadow-xl"
+      >
+        GENERATE QUIZ 🚀
+      </button>
+    </div>
+
+    {/* Recent Quizzes */}
+    <div className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} p-8 rounded-2xl border shadow-sm`}>
+      <h3 className={`text-lg font-bold mb-6 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
+        Recent Quizzes
+      </h3>
+
+      <div className="space-y-3">
+        {history.length > 0 ? (
+          history.slice(0, 4).map((q, i) => (
+            <div
+              key={i}
+              className={`flex justify-between items-center p-4 ${theme === 'dark' ? 'bg-[#1e1e28]' : 'bg-gray-50'} rounded-xl border ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-200'} hover:border-indigo-500/30 transition-colors`}
+            >
               <div>
-                <p className="font-bold text-slate-800 text-sm">{q.topic}</p>
-                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{new Date(q.createdAt).toLocaleDateString()}</p>
+                <p className={`font-bold text-sm ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
+                  {q.topic}
+                </p>
+                <p className={`text-xs ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
+                  {new Date(q.createdAt).toLocaleDateString()}
+                </p>
               </div>
-              <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg font-black text-sm">{q.score}%</span>
+
+              <span className="bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-lg text-sm font-bold">
+                {q.totalQuestions
+                  ? Math.round((q.score / q.totalQuestions) * 100)
+                  : 0}
+                %
+              </span>
             </div>
-          )) : <p className="text-slate-400 italic text-center py-10">Start a quiz to see your activity!</p>}
-        </div>
+          ))
+        ) : (
+          <p className={`italic text-center py-6 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
+            No quizzes yet. Generate your first AI quiz!
+          </p>
+        )}
       </div>
     </div>
   </div>
 );
 
-const ProfileSection = ({ user, stats, history }) => (
-  <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-    <div className="bg-white p-12 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-10">
-        <div className="h-40 w-40 bg-indigo-600 rounded-[2.5rem] flex items-center justify-center text-6xl text-white font-black shadow-xl">
-          {user?.name?.charAt(0).toUpperCase()}
-        </div>
-        <div className="text-center md:text-left">
-          <h2 className="text-5xl font-black text-slate-800 tracking-tight">{user?.name}</h2>
-          <p className="text-slate-400 text-lg font-medium italic">{user?.email}</p>
-        </div>
-    </div>
-
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-       <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm min-h-[400px]">
-          <h3 className="text-xl font-bold mb-8 text-slate-800">Performance Trend</h3>
-          <div style={{ width: '100%', height: 280 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={[...history].reverse()}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                <XAxis dataKey="createdAt" hide />
-                <YAxis axisLine={false} tickLine={false} fontSize={10} tick={{fill: '#94A3B8'}} />
-                <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
-                <Line type="monotone" dataKey="score" stroke="#4F46E5" strokeWidth={5} dot={{ r: 6, fill: '#4F46E5', strokeWidth: 3, stroke: '#fff' }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-       </div>
-       <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
-          <h3 className="text-xl font-bold mb-8 text-slate-800">Learning Progress</h3>
-          <SkillBar title="Quiz Novice" icon="🧠" progress={Math.min(100, (stats.totalQuizzes / 5) * 100)} target="5 Quizzes" />
-          <SkillBar title="Accuracy Ace" icon="🎯" progress={stats.accuracy || 0} target="90%+ Accuracy" />
-          <SkillBar title="Speedster" icon="⚡" progress={45} target="Top 10% Speed" />
-       </div>
-    </div>
-  </div>
-);
-
-// --- HELPER COMPONENTS ---
-const SidebarItem = ({ active, label, icon, onClick }) => (
-  <button onClick={onClick} className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all duration-300 ${active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40 translate-x-1' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}`}>
-    <span className="text-xl">{icon}</span> {label}
+const SidebarItem = ({ active, label, icon, onClick, theme = 'dark' }) => (
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center gap-4 p-4 rounded-xl font-bold transition ${
+      active
+        ? "bg-indigo-600 text-white shadow-lg"
+        : theme === 'dark'
+        ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+    }`}
+  >
+    <span>{icon}</span> {label}
   </button>
 );
 
-const StatCard = ({ label, value, icon }) => (
-  <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm group hover:border-indigo-100 transition-colors">
-    <div className="text-2xl mb-4 bg-slate-50 w-12 h-12 flex items-center justify-center rounded-xl shadow-inner group-hover:scale-110 transition-transform">{icon}</div>
-    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{label}</p>
-    <p className="text-3xl font-black text-slate-800 tracking-tighter">{value}</p>
+const StatCard = ({ label, value, icon, description, theme = 'dark' }) => (
+  <div className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} p-6 rounded-2xl border hover:border-indigo-500/30 transition-all group shadow-sm`}>
+    <div className="flex items-start justify-between mb-4">
+      <div className="text-3xl">{icon}</div>
+      <div className="h-2 w-2 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    </div>
+    <p className={`text-xs uppercase font-bold tracking-widest mb-1 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
+      {label}
+    </p>
+    <p className={`text-3xl font-black mb-1 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
+      {value}
+    </p>
+    {description && (
+      <p className={`text-xs ${theme === 'dark' ? 'text-zinc-600' : 'text-gray-500'}`}>
+        {description}
+      </p>
+    )}
   </div>
 );
 
-const SkillBar = ({ title, icon, progress, target }) => (
-  <div className="mb-8 last:mb-0">
-    <div className="flex justify-between items-center mb-2">
-      <div className="flex items-center gap-2 font-bold text-slate-700 text-sm"><span>{icon}</span> {title}</div>
-      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{target}</span>
+const ProfileSection = ({ user, stats, history, theme = 'dark' }) => {
+  const lastQuiz = history[0];
+  return (
+    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+      <div className="space-y-3">
+        <h1 className={`text-4xl font-black tracking-tight ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
+          Your Profile
+        </h1>
+        <p className={theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}>
+          View your account information and quiz activity history.
+        </p>
+      </div>
+
+      <div className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} p-10 rounded-3xl border shadow-sm`}>
+        <div className="flex flex-col md:flex-row items-center gap-8">
+          <div className="h-32 w-32 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl flex items-center justify-center text-5xl text-white font-black shadow-xl">
+            {user?.name?.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <h2 className={`text-4xl font-black tracking-tight mb-2 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
+              {user?.name}
+            </h2>
+            <p className={`text-lg mb-6 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
+              {user?.email}
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+              <div className={`${theme === 'dark' ? 'bg-[#1e1e28] border-zinc-800' : 'bg-gray-50 border-gray-200'} px-6 py-3 rounded-xl border`}>
+                <span className="text-2xl font-black text-indigo-400">{stats.totalQuizzes || 0}</span>
+                <span className={`text-sm ml-2 font-bold ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-600'}`}>Total Quizzes</span>
+              </div>
+              {lastQuiz && (
+                <div className={`${theme === 'dark' ? 'bg-[#1e1e28] border-zinc-800' : 'bg-gray-50 border-gray-200'} px-6 py-3 rounded-xl border`}>
+                  <span className={`text-sm font-bold ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>Last Topic:</span>
+                  <span className={`block font-bold mt-1 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>{lastQuiz.topic}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} p-8 rounded-3xl border shadow-sm`}>
+        <h3 className={`text-xl font-bold mb-6 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
+          Recent Quiz Activity
+        </h3>
+        {history.length === 0 ? (
+          <p className={`text-center py-8 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
+            You haven't completed any quizzes yet. Generate your first AI quiz from the dashboard!
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {history.slice(0, 8).map((q) => (
+              <div
+                key={q._id}
+                className={`flex justify-between items-center p-4 ${theme === 'dark' ? 'bg-[#1e1e28] border-zinc-800' : 'bg-gray-50 border-gray-200'} rounded-xl border hover:border-indigo-500/30 transition-colors`}
+              >
+                <div>
+                  <p className={`font-semibold ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>{q.topic}</p>
+                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
+                    {q.difficulty} • {new Date(q.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <span className="text-emerald-400 font-bold">
+                  {q.totalQuestions
+                    ? Math.round((q.score / q.totalQuestions) * 100)
+                    : q.score}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
-    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-      <div className="bg-indigo-600 h-full transition-all duration-1000" style={{ width: `${progress}%` }}></div>
-    </div>
-  </div>
-);
+  );
+};
 
 export default AdvancedDashboard;
