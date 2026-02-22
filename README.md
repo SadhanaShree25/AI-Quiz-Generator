@@ -9,9 +9,9 @@
   <img src="https://img.shields.io/badge/Auth-JWT-orange?style=for-the-badge" />
 </p>
 
-<h2 align="center">
+<h4 align="center">
   🚀 A full-stack web application that generates intelligent, personalized quizzes on any topic using AI (Groq/Llama). Users can create accounts, generate quizzes, track their progress, and review their answers with explanations.
-</h2>
+</h4>
 
 ---
 
