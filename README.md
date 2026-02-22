@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  🚀 An AI-powered full-stack web application that generates intelligent, personalized quizzes on any topic using Groq (Llama 3.3 70B).
+  🚀 A full-stack web application that generates intelligent, personalized quizzes on any topic using AI (Groq/Llama). Users can create accounts, generate quizzes, track their progress, and review their answers with explanations.
 </p>
 
 ---
@@ -35,8 +35,7 @@ Generate quizzes on any topic using **Groq's Llama model**
 ## 📊 Dashboard & Analytics
 ✔ Total quizzes overview  
 ✔ Recent activity  
-✔ Performance charts (Recharts)  
-✔ Leaderboard  
+✔ Last Topic
 
 ---
 
