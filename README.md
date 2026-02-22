@@ -1,64 +1,89 @@
-# AI Quiz Generator
+# 🤖 AI Quiz Generator  
 
-A full-stack web application that generates intelligent, personalized quizzes on any topic using AI (Groq/Llama). Users can create accounts, generate quizzes, track their progress, and review their answers with explanations.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" />
+  <img src="https://img.shields.io/badge/Node.js-18+-green?style=for-the-badge&logo=node.js" />
+  <img src="https://img.shields.io/badge/Express-5-black?style=for-the-badge&logo=express" />
+  <img src="https://img.shields.io/badge/MongoDB-Database-brightgreen?style=for-the-badge&logo=mongodb" />
+  <img src="https://img.shields.io/badge/AI-Groq_Llama-purple?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Auth-JWT-orange?style=for-the-badge" />
+</p>
 
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Setup & Installation](#setup--installation)
-- [Environment Variables](#environment-variables)
-- [Running the Application](#running-the-application)
-- [API Reference](#api-reference)
-- [User Flow](#user-flow)
-- [Contributing](#contributing)
+<p align="center">
+  🚀 An AI-powered full-stack web application that generates intelligent, personalized quizzes on any topic using Groq (Llama 3.3 70B).
+</p>
 
 ---
 
-## Features
+# ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| **AI Quiz Generation** | Generate quizzes on any topic using Groq's Llama model (1–20 questions, easy/medium/hard) |
-| **User Authentication** | Register, login with JWT-based sessions |
-| **Dashboard** | Overview with total quizzes, last topic, and recent activity |
-| **Profile** | View account info, total quizzes, and quiz history |
-| **My Quizzes** | Full history of completed quizzes with topic, difficulty, score, and date |
-| **Quiz Player** | Interactive quiz with progress bar, instant feedback, and explanations |
-| **Quiz Review** | After finishing, review all questions with correct/incorrect answers and explanations |
-| **Settings** | Account info and option to clear quiz history |
-| **Dark/Light Theme** | Toggle between dark and light mode (persisted in localStorage) |
+## 🧠 AI Quiz Generation
+Generate quizzes on any topic using **Groq's Llama model**  
+✔ 1–20 questions  
+✔ Easy / Medium / Hard difficulty  
+✔ Instant explanations  
 
 ---
 
-## Tech Stack
+## 🔐 Authentication System
+✔ Register & Login  
+✔ JWT-based session management  
+✔ Protected routes  
 
-### Frontend
+---
+
+## 📊 Dashboard & Analytics
+✔ Total quizzes overview  
+✔ Recent activity  
+✔ Performance charts (Recharts)  
+✔ Leaderboard  
+
+---
+
+## 🎮 Interactive Quiz Player
+✔ Progress bar  
+✔ Instant answer feedback  
+✔ Detailed explanations  
+✔ Final result summary  
+
+---
+
+## 🌗 UI & Experience
+✔ Dark / Light mode (saved in localStorage)  
+✔ Responsive design  
+✔ Clean modern UI with Tailwind CSS  
+
+---
+
+# 🛠️ Tech Stack
+
+## 💻 Frontend
 
 | Technology | Purpose |
 |------------|---------|
-| React 19 | UI library |
-| Vite 7 | Build tool & dev server |
-| React Router 7 | Client-side routing |
-| Tailwind CSS 4 | Styling |
-| Axios | HTTP client |
-| React Spinners | Loading indicators |
-| Recharts | Charts (dashboard) |
+| ⚛ React 19 | UI Library |
+| ⚡ Vite 7 | Build tool |
+| 🧭 React Router 7 | Routing |
+| 🎨 Tailwind CSS 4 | Styling |
+| 📡 Axios | API calls |
+| 📊 Recharts | Dashboard charts |
 
-### Backend
+---
+
+## 🖥️ Backend
 
 | Technology | Purpose |
 |------------|---------|
-| Node.js | Runtime |
-| Express 5 | Web framework |
-| MongoDB | Database (Mongoose ODM) |
-| JWT | Authentication |
-| bcryptjs | Password hashing |
-| Groq API (Llama 3.3 70B) | AI quiz generation |
+| 🟢 Node.js | Runtime |
+| 🚏 Express 5 | Web framework |
+| 🍃 MongoDB | Database |
+| 🔐 JWT | Authentication |
+| 🔒 bcryptjs | Password hashing |
+| 🤖 Groq API (Llama 3.3 70B) | AI quiz generation |
+
+---
+
+# 📁 Project Structure
 
 ---
 
@@ -287,6 +312,6 @@ Authorization: Bearer <token>
 
 ---
 
-## License
+## 👩‍💻 Author
 
-MIT
+**Sadhana Shree**
