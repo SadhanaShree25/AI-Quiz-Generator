@@ -12,6 +12,7 @@ const AdvancedDashboard = () => {
   const { theme, toggleTheme } = useTheme();
   const [currentTab, setCurrentTab] = useState("dashboard");
   const [activeQuiz, setActiveQuiz] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [data, setData] = useState({
     user: null,
@@ -65,40 +66,68 @@ const AdvancedDashboard = () => {
   }
 
   return (
-    <div className={`flex min-h-screen ${theme === 'dark' ? 'bg-[#0f0f14]' : 'bg-gray-50'}`}>
+    <div
+      className={`flex flex-col md:flex-row min-h-screen ${
+        theme === "dark" ? "bg-[#0f0f14]" : "bg-gray-50"
+      }`}
+    >
+      {/* OVERLAY for mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR */}
-      <aside className={`w-72 ${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} border-r flex flex-col fixed h-full`}>
-        <div className={`p-8 text-3xl font-black italic tracking-tighter ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>
-          QUIZ.AI
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 md:w-72 transform ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 transition-transform duration-300 ease-in-out ${
+          theme === "dark" ? "bg-[#18181f] border-zinc-800" : "bg-white border-gray-200"
+        } border-r flex flex-col h-full overflow-y-auto`}
+      >
+        <div
+          className={`p-6 md:p-8 flex justify-between items-center text-3xl font-black italic tracking-tighter w-full ${
+            theme === "dark" ? "text-indigo-400" : "text-indigo-600"
+          }`}
+        >
+          <span>QUIZ.AI</span>
+          <button 
+            className="md:hidden p-2 rounded-lg hover:bg-zinc-800/50"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2">
+        <nav className="flex-1 px-4 space-y-2 mt-4 md:mt-0">
           <SidebarItem
             active={currentTab === "dashboard"}
             label="Dashboard"
             icon="🏠"
-            onClick={() => setCurrentTab("dashboard")}
+            onClick={() => { setCurrentTab("dashboard"); setIsSidebarOpen(false); }}
             theme={theme}
           />
           <SidebarItem
             active={currentTab === "quizzes"}
             label="My Quizzes"
             icon="📝"
-            onClick={() => setCurrentTab("quizzes")}
+            onClick={() => { setCurrentTab("quizzes"); setIsSidebarOpen(false); }}
             theme={theme}
           />
           <SidebarItem
             active={currentTab === "profile"}
             label="Profile"
             icon="👤"
-            onClick={() => setCurrentTab("profile")}
+            onClick={() => { setCurrentTab("profile"); setIsSidebarOpen(false); }}
             theme={theme}
           />
           <SidebarItem
             active={currentTab === "settings"}
             label="Settings"
             icon="⚙️"
-            onClick={() => setCurrentTab("settings")}
+            onClick={() => { setCurrentTab("settings"); setIsSidebarOpen(false); }}
             theme={theme}
           />
         </nav>
@@ -107,9 +136,9 @@ const AdvancedDashboard = () => {
           <button
             onClick={handleLogout}
             className={`w-full py-3 rounded-2xl font-bold transition-all ${
-              theme === 'dark'
-                ? 'bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white'
-                : 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white'
+              theme === "dark"
+                ? "bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white"
+                : "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white"
             }`}
           >
             Logout 🚪
@@ -118,38 +147,64 @@ const AdvancedDashboard = () => {
       </aside>
 
       {/* MAIN */}
-      <main className="flex-1 ml-72">
-        <header className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} h-20 px-10 flex justify-between items-center border-b`}>
-          <h2 className={`text-xl font-bold capitalize ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
-            {currentTab}
-          </h2>
+      <main className="flex-1 w-full md:ml-72 min-h-screen flex flex-col">
+        <header
+          className={`${
+            theme === "dark" ? "bg-[#18181f]/90 border-zinc-800" : "bg-white/90 border-gray-200"
+          } h-20 px-4 sm:px-6 lg:px-10 flex justify-between items-center border-b sticky top-0 z-30 backdrop-blur-md`}
+        >
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className={`p-2 rounded-xl md:hidden ${
+                theme === "dark" ? "text-zinc-100 hover:bg-zinc-800" : "text-gray-900 hover:bg-gray-100"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <h2
+              className={`text-xl font-bold capitalize ${
+                theme === "dark" ? "text-zinc-100" : "text-gray-900"
+              }`}
+            >
+              {currentTab}
+            </h2>
+          </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={toggleTheme}
-              className={`px-4 py-2 rounded-lg text-xs font-bold border transition ${
-                theme === 'dark' 
-                  ? 'border-zinc-700 text-zinc-300 hover:border-indigo-500 hover:text-indigo-400 bg-zinc-800/50' 
-                  : 'border-gray-300 text-gray-700 hover:border-indigo-500 hover:text-indigo-600 bg-gray-100'
+              className={`px-3 py-1 rounded-lg text-xs font-bold border transition ${
+                theme === "dark"
+                  ? "border-zinc-700 text-zinc-300 hover:border-indigo-500 hover:text-indigo-400 bg-zinc-800/50"
+                  : "border-gray-300 text-gray-700 hover:border-indigo-500 hover:text-indigo-600 bg-gray-100"
               }`}
             >
               {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
             </button>
 
             <div
-              className="flex items-center gap-4 cursor-pointer group"
+              className="flex items-center gap-3 cursor-pointer group"
               onClick={() => setCurrentTab("profile")}
             >
               <div className="text-right hidden sm:block">
-                <p className={`text-sm font-bold ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'} group-hover:text-indigo-500 transition`}>
+                <p
+                  className={`text-sm font-bold ${
+                    theme === "dark" ? "text-zinc-100" : "text-gray-900"
+                  } group-hover:text-indigo-500 transition`}
+                >
                   {data.user?.name}
                 </p>
-                <p className={`text-[10px] uppercase font-black ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
+                <p
+                  className={`text-[10px] uppercase font-black ${
+                    theme === "dark" ? "text-zinc-500" : "text-gray-500"
+                  }`}
+                >
                   {data.stats?.totalQuizzes || 0} Quizzes
                 </p>
               </div>
 
-              <div className="h-12 w-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold group-hover:scale-105 transition-transform">
+              <div className="h-10 w-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold group-hover:scale-105 transition-transform">
                 {data.user?.name?.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -217,7 +272,7 @@ const OverviewSection = ({ stats, history, onStart, theme = 'dark' }) => (
   <div className="space-y-8">
     {/* Welcome Heading */}
     <div className="space-y-3">
-      <h1 className={`text-5xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight`}>
+      <h1 className={`text-4xl sm:text-5xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight`}>
         Welcome to AI Quiz Generator
       </h1>
       <p className={`text-lg max-w-2xl leading-relaxed ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
@@ -365,7 +420,7 @@ const ProfileSection = ({ user, stats, history, theme = 'dark' }) => {
             {user?.name?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 text-center md:text-left">
-            <h2 className={`text-4xl font-black tracking-tight mb-2 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
+            <h2 className={`text-3xl sm:text-4xl font-black tracking-tight mb-2 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
               {user?.name}
             </h2>
             <p className={`text-lg mb-6 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>

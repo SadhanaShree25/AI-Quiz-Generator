@@ -22,9 +22,9 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f0f14] p-6 font-sans">
-      <div className="w-full max-w-md bg-[#18181f] p-12 rounded-[3rem] border border-zinc-800 animate-in fade-in zoom-in duration-500">
-        <div className="text-center mb-10">
+    <div className="min-h-screen flex items-center justify-center bg-[#0f0f14] p-4 sm:p-6 font-sans">
+      <div className="w-full max-w-md bg-[#18181f] p-6 sm:p-12 rounded-3xl sm:rounded-[3rem] border border-zinc-800 animate-in fade-in zoom-in duration-500">
+        <div className="text-center mb-8 sm:mb-10">
           <Link to="/" className="text-3xl font-black text-indigo-400 italic tracking-tighter">QUIZ.AI</Link>
           <h2 className="text-2xl font-bold text-zinc-100 mt-6 tracking-tight">Create Account</h2>
           <p className="text-zinc-500 font-medium text-sm mt-1">Start your AI learning journey today.</p>

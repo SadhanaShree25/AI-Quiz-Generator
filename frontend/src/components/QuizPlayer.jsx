@@ -86,7 +86,7 @@ const QuizPlayer = ({ questions, topic, difficulty, onBack }) => {
 
   if (quizFinished) {
     return (
-      <div className="p-10 bg-[#18181f] rounded-3xl border border-zinc-800 max-w-5xl mx-auto space-y-8 shadow-xl">
+      <div className="p-6 sm:p-10 bg-[#18181f] rounded-3xl border border-zinc-800 max-w-5xl mx-auto space-y-8 shadow-xl">
         <div className="text-center">
           <h2 className="text-4xl font-black text-zinc-100 mb-3">
             🎉 Quiz Finished!
@@ -107,7 +107,7 @@ const QuizPlayer = ({ questions, topic, difficulty, onBack }) => {
             const isCorrect =
               userAnswer &&
               String(userAnswer).trim().toLowerCase() ===
-                String(correct).trim().toLowerCase();
+              String(correct).trim().toLowerCase();
 
             return (
               <div
@@ -122,9 +122,8 @@ const QuizPlayer = ({ questions, topic, difficulty, onBack }) => {
                 </p>
                 <div className="space-y-2">
                   <p
-                    className={`text-base font-semibold ${
-                      isCorrect ? "text-emerald-400" : "text-rose-400"
-                    }`}
+                    className={`text-base font-semibold ${isCorrect ? "text-emerald-400" : "text-rose-400"
+                      }`}
                   >
                     Your answer: {userAnswer ?? "Not answered"}
                   </p>
@@ -159,34 +158,33 @@ const QuizPlayer = ({ questions, topic, difficulty, onBack }) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-10 bg-[#18181f] rounded-3xl border border-zinc-800 shadow-xl">
+    <div className="max-w-4xl mx-auto p-6 sm:p-10 bg-[#18181f] rounded-3xl border border-zinc-800 shadow-xl">
       <div className="mb-6">
         <h2 className="text-zinc-400 font-bold text-lg mb-1">
           Question {currentIndex + 1} of {questions.length}
         </h2>
         <div className="w-full bg-zinc-800 rounded-full h-2">
-          <div 
+          <div
             className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
           ></div>
         </div>
       </div>
 
-      <h3 className="text-2xl font-bold text-zinc-100 mb-8 leading-relaxed">{currentQuestion.question}</h3>
+      <h3 className="text-xl sm:text-2xl font-bold text-zinc-100 mb-6 sm:mb-8 leading-relaxed">{currentQuestion.question}</h3>
 
-      <div className="space-y-4 mb-8">
+      <div className="space-y-3 sm:space-y-4 mb-8">
         {currentQuestion.options.map((option, index) => (
           <button
             key={index}
             onClick={() => handleAnswerClick(option)}
             disabled={selectedAnswer !== null}
-            className={`w-full block text-left p-5 rounded-xl font-medium transition-all text-lg ${
-              selectedAnswer === option
+            className={`w-full block text-left p-4 sm:p-5 rounded-xl font-medium transition-all text-base sm:text-lg ${selectedAnswer === option
                 ? option === normalizedCorrect
                   ? "bg-emerald-600 text-white shadow-lg"
                   : "bg-rose-600 text-white shadow-lg"
                 : "bg-[#1e1e28] text-zinc-200 border border-zinc-800 hover:border-indigo-500/50 hover:bg-[#252530]"
-            }`}
+              }`}
           >
             {option}
           </button>

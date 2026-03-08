@@ -22,8 +22,69 @@ const MyQuizzesSection = ({ history = [] }) => {
           </span>
         </div>
       </div>
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-4">
+        {history.length > 0 ? (
+          history.map((quiz, index) => {
+            const rawScore = Number(quiz?.score) || 0;
+            const total = Number(quiz?.totalQuestions) || 1;
+            const score = total > 0 ? Math.round((rawScore / total) * 100) : 0;
+            const createdAt = quiz?.createdAt
+              ? new Date(quiz.createdAt).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+              : "N/A";
 
-      <div className="bg-[#18181f] rounded-[3rem] border border-zinc-800 overflow-hidden">
+            return (
+              <div
+                key={quiz?._id || index}
+                className="bg-[#18181f] border border-zinc-800 rounded-2xl p-4 space-y-2"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-zinc-100 font-semibold">
+                      {quiz?.topic || "Unknown Topic"}
+                    </p>
+                    <p className="text-xs text-zinc-500">{createdAt}</p>
+                  </div>
+                  <span className="inline-flex items-center justify-center h-10 px-3 bg-zinc-800 rounded-xl font-black text-zinc-100">
+                    {score}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span
+                    className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${quiz?.difficulty === "hard"
+                        ? "bg-rose-500/20 text-rose-400"
+                        : quiz?.difficulty === "medium"
+                          ? "bg-amber-500/20 text-amber-400"
+                          : "bg-emerald-500/20 text-emerald-400"
+                      }`}
+                  >
+                    {quiz?.difficulty || "Medium"}
+                  </span>
+                  <span className="text-xs font-bold text-zinc-500">
+                    {score >= 70 ? "Passed ✨" : "Review Needed"}
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="py-12 text-center">
+            <p className="text-zinc-500 font-bold italic text-lg">
+              No quizzes yet.
+            </p>
+            <p className="text-zinc-600 text-sm">
+              Generate and complete a quiz to see it here!
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="hidden md:block bg-[#18181f] rounded-[3rem] border border-zinc-800 overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-[#1e1e28] border-b border-zinc-800">
             <tr>
@@ -53,10 +114,10 @@ const MyQuizzesSection = ({ history = [] }) => {
                 const score = total > 0 ? Math.round((rawScore / total) * 100) : 0;
                 const createdAt = quiz?.createdAt
                   ? new Date(quiz.createdAt).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })
                   : "N/A";
 
                 return (
@@ -76,13 +137,12 @@ const MyQuizzesSection = ({ history = [] }) => {
 
                     <td className="px-10 py-6">
                       <span
-                        className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                          quiz?.difficulty === "hard"
+                        className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${quiz?.difficulty === "hard"
                             ? "bg-rose-500/20 text-rose-400"
                             : quiz?.difficulty === "medium"
-                            ? "bg-amber-500/20 text-amber-400"
-                            : "bg-emerald-500/20 text-emerald-400"
-                        }`}
+                              ? "bg-amber-500/20 text-amber-400"
+                              : "bg-emerald-500/20 text-emerald-400"
+                          }`}
                       >
                         {quiz?.difficulty || "Medium"}
                       </span>

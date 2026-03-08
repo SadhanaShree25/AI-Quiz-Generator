@@ -46,9 +46,9 @@ export default function QuizForm({ onQuizGenerated }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-[#18181f] p-12 rounded-3xl border border-zinc-800 mt-10 shadow-xl">
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <h1 className="text-4xl font-bold text-center text-zinc-100 mb-2">
+    <div className="max-w-4xl mx-auto bg-[#18181f] p-6 sm:p-12 rounded-3xl border border-zinc-800 mt-6 sm:mt-10 shadow-xl">
+      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-center text-zinc-100 mb-2">
           AI Quiz Generator
         </h1>
         <p className="text-center text-zinc-400 text-lg mb-6">
