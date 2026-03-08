@@ -24,9 +24,9 @@ const LandingPage = () => {
           <p className="text-base sm:text-lg md:text-xl text-zinc-500 font-medium max-w-xl mx-auto md:mx-0 leading-relaxed">
             Generate custom AI quizzes on any topic. Track your progress and master what you learn.
           </p>
-          <div className="flex flex-wrap gap-3 sm:gap-4 justify-center md:justify-start">
-            <Link to="/signup" className="px-6 sm:px-8 lg:px-10 py-3 sm:py-4 bg-indigo-600 text-white rounded-2xl font-black text-base sm:text-lg hover:bg-indigo-500 transition active:scale-95">GET STARTED FREE</Link>
-            <Link to="/login" className="px-6 sm:px-8 lg:px-10 py-3 sm:py-4 bg-[#18181f] border border-zinc-800 text-zinc-200 rounded-2xl font-black text-base sm:text-lg hover:border-indigo-500/50 transition">LOG IN</Link>
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center md:justify-start w-full sm:w-auto px-4 sm:px-0">
+            <Link to="/signup" className="w-full sm:w-auto text-center px-6 sm:px-8 lg:px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-base sm:text-lg hover:bg-indigo-500 transition active:scale-95">GET STARTED FREE</Link>
+            <Link to="/login" className="w-full sm:w-auto text-center px-6 sm:px-8 lg:px-10 py-4 bg-[#18181f] border border-zinc-800 text-zinc-200 rounded-2xl font-black text-base sm:text-lg hover:border-indigo-500/50 transition">LOG IN</Link>
           </div>
         </div>
         <div className="flex-1 relative mt-12 sm:mt-10 md:mt-0 w-full max-w-[280px] sm:max-w-md md:max-w-none mx-auto">
@@ -39,7 +39,7 @@ const LandingPage = () => {
         </div>
       </header>
 
-      <section id="features" className="py-24 px-10">
+      <section id="features" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-10">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-center text-4xl font-black mb-16 text-zinc-100">Why <span className="text-indigo-400">AI Quiz Generator</span>?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -51,10 +51,10 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <footer className="bg-[#18181f] border-t border-zinc-800 text-zinc-400 py-16 px-10">
+      <footer className="bg-[#18181f] border-t border-zinc-800 text-zinc-400 py-10 sm:py-16 px-4 sm:px-6 lg:px-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-3xl font-black italic text-indigo-400">QUIZ.AI</div>
-          <div className="text-zinc-600 text-sm">© 2026 AI Quiz Generator. Built with AI.</div>
+          <div className="text-zinc-600 text-sm">© 2026 AI Quiz Generator. Built with CODE </div>
         </div>
       </footer>
     </div>
@@ -62,7 +62,7 @@ const LandingPage = () => {
 };
 
 const FeatureCard = ({ icon, title, desc }) => (
-  <div className="p-8 rounded-[2.5rem] bg-[#18181f] border border-zinc-800 hover:border-indigo-500/30 transition-all group">
+  <div className="p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] bg-[#18181f] border border-zinc-800 hover:border-indigo-500/30 transition-all group">
     <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{icon}</div>
     <h3 className="text-xl font-bold mb-2 text-zinc-100">{title}</h3>
     <p className="text-zinc-500 text-sm font-medium leading-relaxed">{desc}</p>
