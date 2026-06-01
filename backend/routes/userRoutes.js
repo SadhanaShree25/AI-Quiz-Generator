@@ -5,7 +5,7 @@ import QuizResult from "../models/QuizResult.js";
 const router = express.Router();
 
 router.get("/dashboard", protect, async (req, res) => {
-  const results = await QuizResult.find({ userId: req.user });
+  const results = await QuizResult.find({ userId: req.user.id });
 
   const total = results.length;
   const best = Math.max(...results.map(r => r.score), 0);

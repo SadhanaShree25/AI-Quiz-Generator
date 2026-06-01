@@ -46,7 +46,18 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
-      {!loading && children}
+      {loading ? (
+        <div className="flex h-screen w-screen items-center justify-center bg-[#0a0a0f] text-zinc-100 font-sans">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-12 w-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="text-indigo-400 font-black uppercase tracking-widest text-xs animate-pulse">
+              Verifying Session...
+            </div>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 };

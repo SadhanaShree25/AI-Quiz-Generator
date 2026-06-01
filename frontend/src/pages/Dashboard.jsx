@@ -1,64 +1,86 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
-import { useNavigate } from "react-router-dom";
-import SettingsSection from "../components/SettingsSection";
+import { useNavigate, Link } from "react-router-dom";
 import MyQuizzesSection from "../components/MyQuizzesSection";
 import QuizForm from "../pages/QuizForm";
+import PdfQuizForm from "./PdfQuizForm";
 import QuizPlayer from "../components/QuizPlayer";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 
 const AdvancedDashboard = () => {
+  const { user: authUser, logout: authLogout } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [currentTab, setCurrentTab] = useState("dashboard");
   const [activeQuiz, setActiveQuiz] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [data, setData] = useState({
-    user: null,
-    stats: { totalQuizzes: 0, totalAttempts: 0, lastTopic: "None" },
+    stats: { totalQuizzes: 0, totalAttempts: 0, lastTopic: "None", streak: 0, avgScore: 0 },
     history: [],
   });
 
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setData({
+        stats: { totalQuizzes: 0, totalAttempts: 0, lastTopic: "None", streak: 0, avgScore: 0 },
+        history: [],
+      });
+      setLoading(false);
+      return;
+    }
     try {
-      const [userRes, statsRes, historyRes] = await Promise.all([
-        api.get("/auth/me"),
+      const [statsRes, historyRes] = await Promise.all([
         api.get("/quiz/stats"),
         api.get("/quiz/history"),
       ]);
 
       setData({
-        user: userRes.data,
-        stats: statsRes.data,
-        history: historyRes.data,
+        stats: {
+          totalQuizzes: statsRes.data.totalQuizzes || 0,
+          totalAttempts: statsRes.data.totalAttempts || 0,
+          lastTopic: statsRes.data.lastTopic || "None",
+          streak: statsRes.data.streak || 0,
+          avgScore: statsRes.data.avgScore || 0,
+        },
+        history: historyRes.data || [],
       });
     } catch (err) {
       console.error("Error fetching data:", err);
-      if (err.response?.status === 401) navigate("/login");
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    authLogout();
     navigate("/login");
+  };
+
+  const verifyAuthAndExecute = (actionCallback) => {
+    const token = localStorage.getItem("token");
+    if (!token || !authUser) {
+      navigate("/login");
+    } else {
+      actionCallback();
+    }
   };
 
   if (loading) {
     return (
-      <div className={`flex h-screen items-center justify-center ${theme === 'dark' ? 'bg-[#0f0f14]' : 'bg-gray-50'}`}>
+      <div className={`flex h-screen items-center justify-center ${theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-50"}`}>
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-indigo-400 font-bold uppercase tracking-widest">
-            Loading AI Workspace...
+          <div className="text-indigo-400 font-bold uppercase tracking-widest text-sm animate-pulse">
+            Loading AI Engine...
           </div>
         </div>
       </div>
@@ -66,412 +88,441 @@ const AdvancedDashboard = () => {
   }
 
   return (
-    <div
-      className={`flex flex-col md:flex-row min-h-screen ${
-        theme === "dark" ? "bg-[#0f0f14]" : "bg-gray-50"
-      }`}
-    >
-      {/* OVERLAY for mobile */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+    <div className={`min-h-screen font-sans transition-colors duration-300 ${theme === "dark" ? "bg-[#0a0a0f] text-zinc-100" : "bg-gray-50 text-gray-900"}`}>
 
-      {/* SIDEBAR */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 md:w-72 transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transition-transform duration-300 ease-in-out ${
-          theme === "dark" ? "bg-[#18181f] border-zinc-800" : "bg-white border-gray-200"
-        } border-r flex flex-col h-full overflow-y-auto`}
-      >
-        <div
-          className={`p-6 md:p-8 flex justify-between items-center text-3xl font-black italic tracking-tighter w-full ${
-            theme === "dark" ? "text-indigo-400" : "text-indigo-600"
-          }`}
-        >
-          <span>QUIZ.AI</span>
-          <button 
-            className="md:hidden p-2 rounded-lg hover:bg-zinc-800/50"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
+      {/* GLOBAL GLASSMORPHISM STICKY NAVBAR */}
+      <nav className={`sticky top-0 z-50 w-full border-b backdrop-blur-md transition-all ${theme === "dark" ? "bg-[#0a0a0f]/70 border-zinc-800/80" : "bg-white/70 border-gray-200"
+        }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
-        <nav className="flex-1 px-4 space-y-2 mt-4 md:mt-0">
-          <SidebarItem
-            active={currentTab === "dashboard"}
-            label="Dashboard"
-            icon="🏠"
-            onClick={() => { setCurrentTab("dashboard"); setIsSidebarOpen(false); }}
-            theme={theme}
-          />
-          <SidebarItem
-            active={currentTab === "quizzes"}
-            label="My Quizzes"
-            icon="📝"
-            onClick={() => { setCurrentTab("quizzes"); setIsSidebarOpen(false); }}
-            theme={theme}
-          />
-          <SidebarItem
-            active={currentTab === "profile"}
-            label="Profile"
-            icon="👤"
-            onClick={() => { setCurrentTab("profile"); setIsSidebarOpen(false); }}
-            theme={theme}
-          />
-          <SidebarItem
-            active={currentTab === "settings"}
-            label="Settings"
-            icon="⚙️"
-            onClick={() => { setCurrentTab("settings"); setIsSidebarOpen(false); }}
-            theme={theme}
-          />
-        </nav>
+          {/* Logo */}
+          <div className="flex items-center gap-8">
+            <span className="text-2xl font-black tracking-tighter bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent cursor-pointer" onClick={() => setCurrentTab("dashboard")}>
+              QUIZ.AI
+            </span>
 
-        <div className="p-6">
-          <button
-            onClick={handleLogout}
-            className={`w-full py-3 rounded-2xl font-bold transition-all ${
-              theme === "dark"
-                ? "bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white"
-                : "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white"
-            }`}
-          >
-            Logout 🚪
-          </button>
-        </div>
-      </aside>
-
-      {/* MAIN */}
-      <main className="flex-1 w-full md:ml-72 min-h-screen flex flex-col">
-        <header
-          className={`${
-            theme === "dark" ? "bg-[#18181f]/90 border-zinc-800" : "bg-white/90 border-gray-200"
-          } h-20 px-4 sm:px-6 lg:px-10 flex justify-between items-center border-b sticky top-0 z-30 backdrop-blur-md`}
-        >
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className={`p-2 rounded-xl md:hidden ${
-                theme === "dark" ? "text-zinc-100 hover:bg-zinc-800" : "text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </button>
-            <h2
-              className={`text-xl font-bold capitalize ${
-                theme === "dark" ? "text-zinc-100" : "text-gray-900"
-              }`}
-            >
-              {currentTab}
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-4">
-            <button
-              onClick={toggleTheme}
-              className={`px-3 py-1 rounded-lg text-xs font-bold border transition ${
-                theme === "dark"
-                  ? "border-zinc-700 text-zinc-300 hover:border-indigo-500 hover:text-indigo-400 bg-zinc-800/50"
-                  : "border-gray-300 text-gray-700 hover:border-indigo-500 hover:text-indigo-600 bg-gray-100"
-              }`}
-            >
-              {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
-            </button>
-
-            <div
-              className="flex items-center gap-3 cursor-pointer group"
-              onClick={() => setCurrentTab("profile")}
-            >
-              <div className="text-right hidden sm:block">
-                <p
-                  className={`text-sm font-bold ${
-                    theme === "dark" ? "text-zinc-100" : "text-gray-900"
-                  } group-hover:text-indigo-500 transition`}
-                >
-                  {data.user?.name}
-                </p>
-                <p
-                  className={`text-[10px] uppercase font-black ${
-                    theme === "dark" ? "text-zinc-500" : "text-gray-500"
+            {/* Nav Links */}
+            <div className="hidden md:flex items-center gap-1">
+              <button
+                onClick={() => setCurrentTab("dashboard")}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${currentTab === "dashboard"
+                  ? (theme === "dark" ? "bg-zinc-800 text-white" : "bg-gray-200/80 text-gray-900")
+                  : (theme === "dark" ? "text-zinc-400 hover:text-white" : "text-gray-600 hover:text-gray-900")
                   }`}
-                >
-                  {data.stats?.totalQuizzes || 0} Quizzes
-                </p>
-              </div>
-
-              <div className="h-10 w-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold group-hover:scale-105 transition-transform">
-                {data.user?.name?.charAt(0).toUpperCase()}
-              </div>
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => verifyAuthAndExecute(() => setCurrentTab("quizzes"))}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${currentTab === "quizzes"
+                  ? (theme === "dark" ? "bg-zinc-800 text-white" : "bg-gray-200/80 text-gray-900")
+                  : (theme === "dark" ? "text-zinc-400 hover:text-white" : "text-gray-600 hover:text-gray-900")
+                  }`}
+              >
+                History
+              </button>
             </div>
           </div>
-        </header>
 
-        <div className="p-10 max-w-7xl mx-auto">
-          {currentTab === "dashboard" && (
-            <OverviewSection
-              stats={data.stats}
-              history={data.history}
-              onStart={() => setCurrentTab("create")}
-              theme={theme}
-            />
-          )}
+          {/* Right Controls */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              className={`p-2.5 rounded-xl border transition-all ${theme === "dark" ? "border-zinc-800 bg-zinc-900/50 text-amber-400 hover:bg-zinc-800" : "border-gray-200 bg-white text-indigo-600 hover:bg-gray-100"
+                }`}
+            >
+              {theme === "dark" ? "🌙" : "☀️"}
+            </button>
 
-          {currentTab === "quizzes" && (
-            <MyQuizzesSection
-              history={data.history}
-              onUpdate={fetchDashboardData}
-            />
-          )}
+            {/* Profile Menu Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  if (!authUser) {
+                    navigate("/login");
+                  } else {
+                    setIsDropdownOpen(!isDropdownOpen);
+                  }
+                }}
+                className="flex items-center gap-2 p-1.5 rounded-full hover:bg-zinc-800/10 dark:hover:bg-zinc-800/50 transition"
+              >
+                <div className="h-9 w-9 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+                  {authUser ? authUser.name?.charAt(0).toUpperCase() : "⚙️"}
+                </div>
+              </button>
 
-          {currentTab === "profile" && (
-            <ProfileSection
-              user={data.user}
-              stats={data.stats}
-              history={data.history}
-              theme={theme}
-            />
-          )}
-
-          {currentTab === "settings" && (
-            <SettingsSection
-              user={data.user}
-              onUpdate={fetchDashboardData}
-            />
-          )}
-
-          {currentTab === "create" && (
-            <>
-              {!activeQuiz ? (
-                <QuizForm onQuizGenerated={(quiz) => setActiveQuiz(quiz)} />
-              ) : (
-                <QuizPlayer
-                  questions={activeQuiz.questions}
-                  topic={activeQuiz.topic}
-                  difficulty={activeQuiz.difficulty}
-                  onBack={() => {
-                    setActiveQuiz(null);
-                    setCurrentTab("dashboard");
-                    fetchDashboardData();
-                  }}
-                />
+              {isDropdownOpen && authUser && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
+                  <div className={`absolute right-0 mt-3 w-56 rounded-2xl border p-2 shadow-xl z-20 animate-in fade-in slide-in-from-top-3 duration-200 ${theme === "dark" ? "bg-[#12121a] border-zinc-800 text-zinc-200" : "bg-white border-gray-200 text-gray-800"
+                    }`}>
+                    <div className="px-3 py-2.5 border-b border-zinc-800/10 dark:border-zinc-800/50 mb-1">
+                      <p className="text-xs text-zinc-400 font-medium">Signed in as</p>
+                      <p className="font-bold truncate text-sm">{authUser?.name}</p>
+                    </div>
+                    <button onClick={() => { setCurrentTab("profile"); setIsDropdownOpen(false); }} className="w-full text-left px-3 py-2 rounded-xl text-sm hover:bg-indigo-600 hover:text-white transition font-medium">👤 Profile</button>
+                    <hr className="my-1 border-zinc-800/10 dark:border-zinc-800/50" />
+                    <button onClick={handleLogout} className="w-full text-left px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-500/10 transition font-bold">Logout 🚪</button>
+                  </div>
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
+      </nav>
+
+      {/* CORE WORKSPACE CONTENT */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        {currentTab === "dashboard" && (
+          <div className="space-y-16 animate-in fade-in duration-500">
+
+            {/* HERO SECTION */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-wide uppercase bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                  ⚡ Next-Gen AI Learning Platform
+                </div>
+                <h1 className={`text-4xl sm:text-6xl font-black tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r ${
+                  theme === "dark" ? "from-white via-zinc-200 to-zinc-500" : "from-gray-900 via-gray-700 to-gray-500"
+                }`}>
+                  Welcome to <span className={`bg-gradient-to-r bg-clip-text text-transparent ${
+                    theme === "dark" ? "from-blue-400 to-purple-500" : "from-blue-600 to-purple-600"
+                  }`}>QUIZ.AI</span>
+                </h1>
+                <p className={`text-base sm:text-lg max-w-xl leading-relaxed ${theme === "dark" ? "text-zinc-400" : "text-gray-600"} mx-auto lg:mx-0`}>
+                  Create personalized quizzes from any topic or upload study materials and let AI generate intelligent questions instantly.
+                </p>
+
+                {/* NEAT CONDITIONAL AUTH BUTTON SYSTEM */}
+                {!authUser && (
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                    <Link
+                      to="/login"
+                      className="px-8 py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black text-xs tracking-widest uppercase transition-all shadow-lg shadow-indigo-600/20 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      Login / Register 🔑
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Graphic Asset Container */}
+              <div className="lg:col-span-5 flex justify-center">
+                <div className="relative w-72 h-72 sm:w-80 sm:h-80 group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition duration-700 animate-pulse" />
+                  <div className={`w-full h-full border-2 rounded-[2rem] flex items-center justify-center p-8 transition-transform duration-500 group-hover:scale-[1.02] ${theme === "dark" ? "bg-zinc-900/40 border-zinc-800 backdrop-blur-xl" : "bg-white border-gray-200 shadow-xl"
+                    }`}>
+                    <div className="grid grid-cols-2 gap-4 w-full h-full">
+                      <div className="bg-gradient-to-br from-blue-500/20 to-indigo-500/5 border border-blue-500/20 rounded-2xl flex items-center justify-center text-3xl animate-bounce duration-1000">🤖</div>
+                      <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/5 border border-purple-500/20 rounded-2xl flex items-center justify-center text-3xl translate-y-4">📝</div>
+                      <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/5 border border-emerald-500/20 rounded-2xl flex items-center justify-center text-3xl -translate-y-4">🎯</div>
+                      <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/5 border border-amber-500/20 rounded-2xl flex items-center justify-center text-3xl">⚡</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* DUAL ACTION CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+              {/* CARD 1: TOPIC GENERATION */}
+              <div className={`p-8 rounded-3xl border group relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/5 ${theme === "dark" ? "bg-gradient-to-b from-[#11111a] to-[#0a0a0f] border-zinc-800/80 hover:border-blue-500/40" : "bg-white border-gray-200 shadow-md hover:border-blue-400"
+                }`}>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="text-4xl mb-4 p-3 bg-blue-500/10 rounded-2xl inline-block text-blue-400">🧠</div>
+                <h3 className="text-2xl font-bold mb-2">Generate Quiz</h3>
+                <p className={`text-sm leading-relaxed mb-6 ${theme === "dark" ? "text-zinc-400" : "text-gray-600"}`}>
+                  Generate AI-powered quizzes from any topic. Select difficulty and number of questions to start learning.
+                </p>
+                <button
+                  onClick={() => verifyAuthAndExecute(() => setCurrentTab("create"))}
+                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-lg shadow-blue-600/20"
+                >
+                  Start Quiz 🚀
+                </button>
+              </div>
+
+              {/* CARD 2: STANDALONE PDF GENERATION PORTAL */}
+              <div className={`p-8 rounded-3xl border group relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/5 ${theme === "dark" ? "bg-gradient-to-b from-[#11111a] to-[#0a0a0f] border-zinc-800/80 hover:border-purple-500/40" : "bg-white border-gray-200 shadow-md hover:border-purple-400"
+                }`}>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="text-4xl mb-4 p-3 bg-purple-500/10 rounded-2xl inline-block text-purple-400">📂</div>
+                <h3 className="text-2xl font-bold mb-2">PDF Quiz</h3>
+                <p className={`text-sm leading-relaxed mb-6 ${theme === "dark" ? "text-zinc-400" : "text-gray-600"}`}>
+                  Upload study materials, notes, or PDFs and let AI create questions directly from your contextual content.
+                </p>
+                <button
+                  onClick={() => verifyAuthAndExecute(() => setCurrentTab("pdf-create"))}
+                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-lg shadow-purple-600/20"
+                >
+                  Upload PDF 📑
+                </button>
+              </div>
+            </div>
+
+            {/* PERFORMANCE METRICS PANEL */}
+            <div className="space-y-6">
+              <h3 className="text-xl font-extrabold tracking-tight border-l-4 border-indigo-500 pl-3">Performance Matrix</h3>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <AnalyticsCard label="Total Completed" value={data.stats.totalQuizzes} icon="✅" color="text-blue-400" theme={theme} />
+                <AnalyticsCard label="Learning Streak" value={`${data.stats.streak} Days`} icon="🔥" color="text-orange-400" theme={theme} />
+                <AnalyticsCard label="Average Score" value={`${data.stats.avgScore}%`} icon="🎯" color="text-emerald-400" theme={theme} />
+                <AnalyticsCard label="Topics Learned" value={data.stats.totalQuizzes > 0 ? data.stats.totalQuizzes + 1 : 0} icon="📚" color="text-purple-400" theme={theme} />
+              </div>
+            </div>
+
+            {/* ABOUT PRODUCT SECTION */}
+            <div className={`p-8 sm:p-10 rounded-3xl border ${theme === "dark" ? "bg-gradient-to-r from-zinc-900/50 via-[#11111a] to-zinc-900/50 border-zinc-800/80" : "bg-gray-100/70 border-gray-200"
+              }`}>
+              <div className="max-w-3xl space-y-4">
+                <h3 className="text-2xl font-black tracking-tight">Why QUIZ.AI?</h3>
+                <p className={`text-sm sm:text-base leading-relaxed ${theme === "dark" ? "text-zinc-400" : "text-gray-600"}`}>
+                  QUIZ.AI is an intelligent learning platform that helps students practice, revise, and improve their knowledge through AI-generated quizzes. Users can create quizzes from any topic or upload PDFs to generate questions from study materials. The platform provides detailed explanations, tracks progress, and stores quiz history for future revision.
+                </p>
+              </div>
+            </div>
+
+            {/* CAPABILITY SECTIONS */}
+            <div className="space-y-6">
+              <h4 className={`text-lg font-bold tracking-tight ${theme === "dark" ? "text-zinc-400" : "text-gray-500"}`}>Core Engine Capabilities</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <FeatureMetricCard title="Smart Quiz Generation" desc="Generate topic-based structural components instantly using specific rules." theme={theme} />
+                <FeatureMetricCard title="PDF Question Generator" desc="Create contextually accurate tracking directly from files." theme={theme} />
+                <FeatureMetricCard title="AI Explanations" desc="Get robust detailed analysis insights for failed evaluation questions." theme={theme} />
+                <FeatureMetricCard title="Quiz History Logs" desc="Review historical application scores and trace personal mastery milestones." theme={theme} />
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* CONDITIONALLY RENDERED SUB-SECTIONS */}
+        {currentTab === "quizzes" && (
+          <MyQuizzesSection history={data.history} onUpdate={fetchDashboardData} />
+        )}
+
+        {currentTab === "profile" && (
+          <ProfileSection user={authUser} stats={data.stats} history={data.history} />
+        )}
+
+        {/* STANDARD TOPIC-BASED QUIZ ROUTE */}
+        {currentTab === "create" && (
+          <>
+            {!activeQuiz ? (
+              <QuizForm onQuizGenerated={(quiz) => setActiveQuiz(quiz)} />
+            ) : (
+              <QuizPlayer
+                questions={activeQuiz.questions}
+                topic={activeQuiz.topic}
+                difficulty={activeQuiz.difficulty}
+                onBack={() => {
+                  setActiveQuiz(null);
+                  setCurrentTab("dashboard");
+                  fetchDashboardData();
+                }}
+              />
+            )}
+          </>
+        )}
+
+        {/* STANDALONE PDF GENERATION WORKSPACE TAB CONTAINER */}
+        {currentTab === "pdf-create" && (
+          <>
+            {!activeQuiz ? (
+              <PdfQuizForm onQuizGenerated={(quiz) => setActiveQuiz(quiz)} />
+            ) : (
+              <QuizPlayer
+                questions={activeQuiz.questions}
+                topic={activeQuiz.topic}
+                difficulty={activeQuiz.difficulty}
+                onBack={() => {
+                  setActiveQuiz(null);
+                  setCurrentTab("dashboard");
+                  fetchDashboardData();
+                }}
+              />
+            )}
+          </>
+        )}
       </main>
     </div>
   );
 };
 
-const OverviewSection = ({ stats, history, onStart, theme = 'dark' }) => (
-  <div className="space-y-8">
-    {/* Welcome Heading */}
-    <div className="space-y-3">
-      <h1 className={`text-4xl sm:text-5xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight`}>
-        Welcome to AI Quiz Generator
-      </h1>
-      <p className={`text-lg max-w-2xl leading-relaxed ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
-        Create intelligent, personalized quizzes on any topic using advanced AI. 
-        Track your progress, review your answers, and master new subjects effortlessly.
-      </p>
+/* INTERNAL SUB-COMPONENTS */
+const AnalyticsCard = ({ label, value, icon, color, theme }) => (
+  <div className={`p-6 rounded-2xl border transition-all duration-200 hover:-translate-y-1 ${theme === "dark" ? "bg-[#11111a] border-zinc-800/80 shadow-black/40" : "bg-white border-gray-200 shadow-sm"
+    }`}>
+    <div className="flex justify-between items-center mb-3">
+      <span className={`text-xs uppercase tracking-wider font-extrabold ${theme === "dark" ? "text-zinc-500" : "text-gray-400"}`}>{label}</span>
+      <span className="text-xl">{icon}</span>
     </div>
-
-    {/* Stats Cards */}
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-      <StatCard
-        label="Total Quizzes"
-        value={stats.totalQuizzes || 0}
-        icon="📝"
-        description="Quizzes completed"
-        theme={theme}
-      />
-      <StatCard
-        label="Total Attempts"
-        value={stats.totalAttempts || 0}
-        icon="🎯"
-        description="Times practiced"
-        theme={theme}
-      />
-      <StatCard
-        label="Last Topic"
-        value={stats.lastTopic || "None"}
-        icon="🤖"
-        description="Recent subject"
-        theme={theme}
-      />
-    </div>
-
-    {/* Generate Section */}
-    <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-10 rounded-2xl text-white flex flex-col justify-between min-h-[280px] shadow-xl border border-indigo-500/20">
-      <div>
-        <h3 className="text-3xl font-black mb-3">
-          Start Generating Smart Quizzes
-        </h3>
-        <p className="text-indigo-100 text-base leading-relaxed">
-          Generate topic-based quizzes powered by AI in seconds. Choose any subject, 
-          set difficulty level, and get instant questions with explanations.
-        </p>
-      </div>
-
-      <button
-        onClick={onStart}
-        className="mt-8 bg-white text-indigo-600 py-4 rounded-xl font-bold text-lg hover:scale-[1.02] transition shadow-lg hover:shadow-xl"
-      >
-        GENERATE QUIZ 🚀
-      </button>
-    </div>
-
-    {/* Recent Quizzes */}
-    <div className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} p-8 rounded-2xl border shadow-sm`}>
-      <h3 className={`text-lg font-bold mb-6 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
-        Recent Quizzes
-      </h3>
-
-      <div className="space-y-3">
-        {history.length > 0 ? (
-          history.slice(0, 4).map((q, i) => (
-            <div
-              key={i}
-              className={`flex justify-between items-center p-4 ${theme === 'dark' ? 'bg-[#1e1e28]' : 'bg-gray-50'} rounded-xl border ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-200'} hover:border-indigo-500/30 transition-colors`}
-            >
-              <div>
-                <p className={`font-bold text-sm ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
-                  {q.topic}
-                </p>
-                <p className={`text-xs ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
-                  {new Date(q.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-
-              <span className="bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-lg text-sm font-bold">
-                {q.totalQuestions
-                  ? Math.round((q.score / q.totalQuestions) * 100)
-                  : 0}
-                %
-              </span>
-            </div>
-          ))
-        ) : (
-          <p className={`italic text-center py-6 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
-            No quizzes yet. Generate your first AI quiz!
-          </p>
-        )}
-      </div>
-    </div>
+    <span className={`text-2xl sm:text-3xl font-black ${theme === "dark" ? color : color.replace("400", "600")}`}>{value}</span>
   </div>
 );
 
-const SidebarItem = ({ active, label, icon, onClick, theme = 'dark' }) => (
-  <button
-    onClick={onClick}
-    className={`w-full flex items-center gap-4 p-4 rounded-xl font-bold transition ${
-      active
-        ? "bg-indigo-600 text-white shadow-lg"
-        : theme === 'dark'
-        ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-    }`}
-  >
-    <span>{icon}</span> {label}
-  </button>
-);
-
-const StatCard = ({ label, value, icon, description, theme = 'dark' }) => (
-  <div className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} p-6 rounded-2xl border hover:border-indigo-500/30 transition-all group shadow-sm`}>
-    <div className="flex items-start justify-between mb-4">
-      <div className="text-3xl">{icon}</div>
-      <div className="h-2 w-2 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-    </div>
-    <p className={`text-xs uppercase font-bold tracking-widest mb-1 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
-      {label}
-    </p>
-    <p className={`text-3xl font-black mb-1 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
-      {value}
-    </p>
-    {description && (
-      <p className={`text-xs ${theme === 'dark' ? 'text-zinc-600' : 'text-gray-500'}`}>
-        {description}
-      </p>
-    )}
+const FeatureMetricCard = ({ title, desc, theme }) => (
+  <div className={`p-5 rounded-2xl border transition-colors ${theme === "dark" ? "bg-zinc-900/30 border-zinc-800/60 hover:bg-zinc-900/60" : "bg-white border-gray-200 shadow-sm hover:bg-gray-50"
+    }`}>
+    <h5 className="font-bold text-sm mb-1.5">{title}</h5>
+    <p className={`text-xs leading-relaxed ${theme === "dark" ? "text-zinc-500" : "text-gray-500"}`}>{desc}</p>
   </div>
 );
 
-const ProfileSection = ({ user, stats, history, theme = 'dark' }) => {
-  const lastQuiz = history[0];
+const ProfileSection = ({ user, stats, history }) => {
+  const { theme } = useTheme();
+  // Metric Calculations
+  const totalGenerated = stats?.totalQuizzes || history?.length || 0;
+  const totalAttempted = stats?.totalAttempts || history?.length || 0;
+  const avgScore = stats?.avgScore || 0;
+
+  const bestScore = history?.length > 0
+    ? Math.max(...history.map(q => Math.round((q.score / (q.totalQuestions || 1)) * 100)))
+    : 0;
+
+  const lastActiveDate = history?.length > 0 && history[0].createdAt
+    ? new Date(history[0].createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    : "Active Today";
+
+  const role = user?.role || "Student"; // Fallback if backend doesn't provide role
+
   return (
-    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-      <div className="space-y-3">
-        <h1 className={`text-4xl font-black tracking-tight ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
-          Your Profile
-        </h1>
-        <p className={theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}>
-          View your account information and quiz activity history.
-        </p>
+    <div className="space-y-8 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-500">
+
+      {/* HEADER META INTRO */}
+      <div className={`pb-4 border-b ${theme === "dark" ? "border-zinc-800/60" : "border-gray-200"}`}>
+        <h2 className={`text-3xl font-black tracking-tight ${theme === "dark" ? "text-zinc-100" : "text-gray-900"}`}>My Profile</h2>
+        <p className={`${theme === "dark" ? "text-zinc-500" : "text-gray-500"} text-sm mt-1`}>View your identity details and learning intelligence metrics.</p>
       </div>
 
-      <div className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} p-10 rounded-3xl border shadow-sm`}>
-        <div className="flex flex-col md:flex-row items-center gap-8">
-          <div className="h-32 w-32 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl flex items-center justify-center text-5xl text-white font-black shadow-xl">
-            {user?.name?.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <h2 className={`text-3xl sm:text-4xl font-black tracking-tight mb-2 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
-              {user?.name}
-            </h2>
-            <p className={`text-lg mb-6 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
-              {user?.email}
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-              <div className={`${theme === 'dark' ? 'bg-[#1e1e28] border-zinc-800' : 'bg-gray-50 border-gray-200'} px-6 py-3 rounded-xl border`}>
-                <span className="text-2xl font-black text-indigo-400">{stats.totalQuizzes || 0}</span>
-                <span className={`text-sm ml-2 font-bold ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-600'}`}>Total Quizzes</span>
-              </div>
-              {lastQuiz && (
-                <div className={`${theme === 'dark' ? 'bg-[#1e1e28] border-zinc-800' : 'bg-gray-50 border-gray-200'} px-6 py-3 rounded-xl border`}>
-                  <span className={`text-sm font-bold ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>Last Topic:</span>
-                  <span className={`block font-bold mt-1 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>{lastQuiz.topic}</span>
-                </div>
-              )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        {/* LEFT COLUMN: IDENTITY MANAGEMENT SHEET (Basic User Info) */}
+        <div className={`lg:col-span-4 rounded-3xl p-8 backdrop-blur-xl flex flex-col items-center text-center shadow-xl space-y-4 border ${
+          theme === "dark" ? "bg-[#11111a]/60 border-zinc-800/80" : "bg-white border-gray-200"
+        }`}>
+          <div className="relative">
+            <div className={`h-28 w-28 bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-4xl font-black text-white shadow-lg shadow-indigo-600/20 border-4 ${
+              theme === "dark" ? "border-[#0a0a0f]" : "border-white"
+            }`}>
+              {user?.name ? user.name.charAt(0).toUpperCase() : "👤"}
             </div>
+            <span className={`absolute bottom-0 right-0 h-6 w-6 bg-emerald-500 border-4 rounded-full ${
+              theme === "dark" ? "border-[#0a0a0f]" : "border-white"
+            }`}></span>
+          </div>
+
+          <div className="space-y-1">
+            <h3 className={`text-2xl font-black tracking-tight ${theme === "dark" ? "text-zinc-100" : "text-gray-900"}`}>{user?.name || "Guest User"}</h3>
+            <p className={`font-medium text-sm ${theme === "dark" ? "text-zinc-400" : "text-gray-600"}`}>{user?.email || "guest@quiz.ai"}</p>
+          </div>
+
+          <div className="pt-2">
+            <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 inline-block">
+              {role}
+            </span>
           </div>
         </div>
-      </div>
 
-      <div className={`${theme === 'dark' ? 'bg-[#18181f] border-zinc-800' : 'bg-white border-gray-200'} p-8 rounded-3xl border shadow-sm`}>
-        <h3 className={`text-xl font-bold mb-6 ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>
-          Recent Quiz Activity
-        </h3>
-        {history.length === 0 ? (
-          <p className={`text-center py-8 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
-            You haven't completed any quizzes yet. Generate your first AI quiz from the dashboard!
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {history.slice(0, 8).map((q) => (
-              <div
-                key={q._id}
-                className={`flex justify-between items-center p-4 ${theme === 'dark' ? 'bg-[#1e1e28] border-zinc-800' : 'bg-gray-50 border-gray-200'} rounded-xl border hover:border-indigo-500/30 transition-colors`}
-              >
-                <div>
-                  <p className={`font-semibold ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>{q.topic}</p>
-                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>
-                    {q.difficulty} • {new Date(q.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <span className="text-emerald-400 font-bold">
-                  {q.totalQuestions
-                    ? Math.round((q.score / q.totalQuestions) * 100)
-                    : q.score}%
-                </span>
+        {/* RIGHT COLUMN: LEARNING / ACTIVITY STATS */}
+        <div className={`lg:col-span-8 rounded-3xl p-8 backdrop-blur-xl shadow-xl flex flex-col justify-center border ${
+          theme === "dark" ? "bg-[#11111a]/60 border-zinc-800/80" : "bg-white border-gray-200"
+        }`}>
+          <h4 className={`text-xs font-black uppercase tracking-widest border-l-2 border-purple-500 pl-3 mb-6 ${
+            theme === "dark" ? "text-zinc-400" : "text-gray-700"
+          }`}>Learning & Activity Stats</h4>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            {/* Stat: Total Generated */}
+            <div className={`p-5 rounded-2xl flex items-center justify-between group transition-colors border ${
+              theme === "dark" ? "bg-[#0a0a0f]/80 border-zinc-800/60 hover:border-indigo-500/30" : "bg-gray-50 border-gray-200 hover:border-indigo-500/30 shadow-inner"
+            }`}>
+              <div>
+                <span className={`text-[10px] uppercase font-black tracking-widest block mb-1 ${
+                  theme === "dark" ? "text-zinc-500" : "text-gray-500"
+                }`}>Total Quizzes Generated</span>
+                <span className={`text-2xl font-black ${
+                  theme === "dark" ? "text-zinc-200" : "text-gray-900"
+                }`}>{totalGenerated}</span>
               </div>
-            ))}
+              <div className="h-10 w-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 text-xl">
+                🧠
+              </div>
+            </div>
+
+            {/* Stat: Total Attempted */}
+            <div className={`p-5 rounded-2xl flex items-center justify-between group transition-colors border ${
+              theme === "dark" ? "bg-[#0a0a0f]/80 border-zinc-800/60 hover:border-blue-500/30" : "bg-gray-50 border-gray-200 hover:border-blue-500/30 shadow-inner"
+            }`}>
+              <div>
+                <span className={`text-[10px] uppercase font-black tracking-widest block mb-1 ${
+                  theme === "dark" ? "text-zinc-500" : "text-gray-500"
+                }`}>Total Quizzes Attempted</span>
+                <span className={`text-2xl font-black ${
+                  theme === "dark" ? "text-zinc-200" : "text-gray-900"
+                }`}>{totalAttempted}</span>
+              </div>
+              <div className="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 text-xl">
+                📝
+              </div>
+            </div>
+
+            {/* Stat: Average Score */}
+            <div className={`p-5 rounded-2xl flex items-center justify-between group transition-colors border ${
+              theme === "dark" ? "bg-[#0a0a0f]/80 border-zinc-800/60 hover:border-purple-500/30" : "bg-gray-50 border-gray-200 hover:border-purple-500/30 shadow-inner"
+            }`}>
+              <div>
+                <span className={`text-[10px] uppercase font-black tracking-widest block mb-1 ${
+                  theme === "dark" ? "text-zinc-500" : "text-gray-500"
+                }`}>Average Score</span>
+                <span className={`text-2xl font-black ${
+                  theme === "dark" ? "text-zinc-200" : "text-gray-900"
+                }`}>{avgScore}%</span>
+              </div>
+              <div className="h-10 w-10 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 text-xl">
+                📊
+              </div>
+            </div>
+
+            {/* Stat: Best Score */}
+            <div className={`p-5 rounded-2xl flex items-center justify-between group transition-colors border ${
+              theme === "dark" ? "bg-[#0a0a0f]/80 border-zinc-800/60 hover:border-emerald-500/30" : "bg-gray-50 border-gray-200 hover:border-emerald-500/30 shadow-inner"
+            }`}>
+              <div>
+                <span className={`text-[10px] uppercase font-black tracking-widest block mb-1 ${
+                  theme === "dark" ? "text-zinc-500" : "text-gray-500"
+                }`}>Best Score</span>
+                <span className={`text-2xl font-black ${
+                  theme === "dark" ? "text-emerald-400" : "text-emerald-600"
+                }`}>{bestScore}%</span>
+              </div>
+              <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 text-xl">
+                🏆
+              </div>
+            </div>
+
+            {/* Stat: Last Active Date (Full Width) */}
+            <div className={`sm:col-span-2 p-5 rounded-2xl flex items-center justify-between group transition-colors border ${
+              theme === "dark" ? "bg-[#0a0a0f]/80 border-zinc-800/60 hover:border-amber-500/30" : "bg-gray-50 border-gray-200 hover:border-amber-500/30 shadow-inner"
+            }`}>
+              <div>
+                <span className={`text-[10px] uppercase font-black tracking-widest block mb-1 ${
+                  theme === "dark" ? "text-zinc-500" : "text-gray-500"
+                }`}>Last Active Date</span>
+                <span className={`text-lg font-bold ${
+                  theme === "dark" ? "text-zinc-300" : "text-gray-800"
+                }`}>{lastActiveDate}</span>
+              </div>
+              <div className="h-10 w-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 text-xl">
+                📅
+              </div>
+            </div>
+
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

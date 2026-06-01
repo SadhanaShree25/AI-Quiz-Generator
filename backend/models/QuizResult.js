@@ -22,6 +22,15 @@ const quizResultSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  questions: [
+    {
+      question: { type: String, required: true },
+      options: [{ type: String, required: true }],
+      correctAnswer: { type: String, required: true },
+      explanation: { type: String },
+      userAnswer: { type: String },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
