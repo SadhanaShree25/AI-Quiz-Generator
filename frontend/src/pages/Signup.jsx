@@ -55,7 +55,6 @@ const Signup = () => {
               required 
               value={formData.name}
               className="w-full p-4 bg-[#0a0a0f]/80 border border-zinc-800 rounded-xl focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-all font-medium text-sm text-zinc-100 placeholder-zinc-600 shadow-inner"
-              placeholder="John Doe"
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
@@ -67,7 +66,7 @@ const Signup = () => {
               required 
               value={formData.email}
               className="w-full p-4 bg-[#0a0a0f]/80 border border-zinc-800 rounded-xl focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-all font-medium text-sm text-zinc-100 placeholder-zinc-600 shadow-inner"
-              placeholder="john@example.com"
+            
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
           </div>

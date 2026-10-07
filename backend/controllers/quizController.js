@@ -30,20 +30,20 @@ export const generateQuiz = async (req, res) => {
     if (file) {
       try {
         if (!file.buffer) {
-           return res.status(400).json({ message: "File upload failed. Ensure multer is using memoryStorage." });
+          return res.status(400).json({ message: "File upload failed. Ensure multer is using memoryStorage." });
         }
         const parser = new PDFParse(new Uint8Array(file.buffer));
         const pdfData = await parser.getText();
         contextText = pdfData.text;
         await parser.destroy();
-        
+
         if (!contextText || contextText.trim().length === 0) {
-           return res.status(400).json({ message: "Could not extract text from this PDF. It may be scanned images." });
+          return res.status(400).json({ message: "Could not extract text from this PDF. It may be scanned images." });
         }
 
         // Truncate to avoid exceeding AI token limits (roughly 20,000 characters)
         if (contextText.length > 20000) {
-          contextText = contextText.slice(0, 20000); 
+          contextText = contextText.slice(0, 20000);
         }
       } catch (err) {
         console.error("PDF Parsing Error:", err);
@@ -54,13 +54,13 @@ export const generateQuiz = async (req, res) => {
     // 2. Build the AI Formatting Instructions
     let formatInstruction = "";
     const typeLower = String(quizType).toLowerCase();
-    
+
     if (typeLower.includes("true/false") || typeLower.includes("true / false")) {
-       formatInstruction = "Generate True or False questions. The options array MUST contain exactly two strings: ['True', 'False'].";
+      formatInstruction = "Generate True or False questions. The options array MUST contain exactly two strings: ['True', 'False'].";
     } else if (typeLower.includes("mixed")) {
-       formatInstruction = "Generate a mix of standard Multiple Choice (4 options) and True/False questions.";
+      formatInstruction = "Generate a mix of standard Multiple Choice (4 options) and True/False questions.";
     } else {
-       formatInstruction = "Generate standard multiple choice questions with exactly 4 options each.";
+      formatInstruction = "Generate standard multiple choice questions with exactly 4 options each.";
     }
 
     const promptTopic = topic || "the provided document content";
@@ -68,7 +68,7 @@ export const generateQuiz = async (req, res) => {
     // 3. Construct the Prompt
     let prompt = `Based strictly on the provided context, generate ${n} ${difficulty}-level questions about "${promptTopic}".\n`;
     prompt += `${formatInstruction}\n\n`;
-    
+
     if (contextText) {
       prompt += `Context Text:\n${contextText}\n\n`;
     }
@@ -88,10 +88,13 @@ CRITICAL RULES:
 2. The correct option and explanation must be 100% factually accurate.`;
 
     // 4. Call Groq AI
+    const modelToUse = process.env.GROQ_MODEL || "openai/gpt-oss-20b";
+    console.log(`[quizController.js] Requesting Quiz Generation using model: "${modelToUse}"`);
+
     const aiResponse = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
-        model: "llama-3.3-70b-versatile",
+        model: modelToUse,
         messages: [
           {
             role: "system",
@@ -123,14 +126,14 @@ CRITICAL RULES:
     let questions;
     try {
       let cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
-      
+
       const firstBracket = cleaned.indexOf('[');
       const lastBracket = cleaned.lastIndexOf(']');
-      
+
       if (firstBracket !== -1 && lastBracket !== -1) {
         cleaned = cleaned.substring(firstBracket, lastBracket + 1);
       }
-      
+
       questions = JSON.parse(cleaned);
     } catch (parseError) {
       console.error("AI JSON Parse Error. Raw Output:", rawText);
@@ -251,7 +254,7 @@ export const getQuizStats = async (req, res) => {
 
     let totalScore = 0;
     let totalPossible = 0;
-    
+
     quizzes.forEach(q => {
       totalScore += q.score || 0;
       totalPossible += q.totalQuestions || 1;
@@ -262,7 +265,7 @@ export const getQuizStats = async (req, res) => {
 
     res.json({
       totalQuizzes,
-      totalAttempts: totalQuizzes, 
+      totalAttempts: totalQuizzes,
       lastTopic: quizzes.length > 0 ? quizzes[0].topic : "None",
       avgScore,
       streak
